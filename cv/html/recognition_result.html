@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>识别结果</title>
+    {% load static %}
+</head>
+<body>
+     <div>
+        识别结果：<br>
+        <img src="{%static path%}" alt="">
+        <div>结果下载:</div>
+        <a href="{%static path%}">图片</a>
+        <a href="{%static xls_path%}">表格数据</a>
+    </div>
+     <div>识别详情：</div>
+     {% for name in result %}
+     <div>{{forloop.counter0}}号人脸识别结果 : {{name|default:"未知"}}
+         {% if name %}
+            <a href="/facelist/{{name}}">详情>></a></div>
+         {% endif %}
+     {% endfor %}
+    <div>故障联系方式：</div>
+    <div>qq：2424690968</div>
+    <div>电话：13774383668</div>
+    <div>邮箱：boyifan1@126.com</div>
+    <a href="index">刷新（返回主页）</a>
+</body>
+</html>

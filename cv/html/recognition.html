@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>人脸识别测试</title>
+    {% load static %}
+</head>
+<body>
+    <div>人脸识别测试演示网站</div><a href="index">返回主页</a>
+    <div hidden>已加载人脸：{{info}}</div>
+    <div>当前时间：{{time}}</div>
+    <div style="color:red;">公告：{{call}}</div>
+    <div>图片上传</div>
+    <div>
+        <form name="pic_upload_form" method="POST" action="recognition_upload" enctype="multipart/form-data">
+            {% csrf_token %}
+            <p><span>&nbsp;图片选择：</span><input type="file" name="pic" required></p>
+            <p><span>&nbsp;严谨度：</span><input type="number" name="tolerance"  min="1" max="10" value="7" required="required">（越小越严格1~10）</p>
+            <P><span>&nbsp;</span><button>提交</button>
+        </form>
+    </div>
+    <div>故障联系方式：</div>
+    <div>qq：2424690968</div>
+    <div>电话：13774383668</div>
+    <div>邮箱：boyifan1@126.com</div>
+</body>
+</html>

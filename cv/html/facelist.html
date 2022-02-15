@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>{{name}}详情</title>
+    {% load static %}
+</head>
+<body>
+    <form name='people_edit-form' method='post' action="/face_edit/{{name}}">
+        {% csrf_token %}
+        <div>{{name}}信息一览<a href="/namelist">返回</a></div>
+        <div>名：<input type="text" name="first_name" value="{{first_name}}"></div>
+        <div>姓：<input type="text" name="last_name" value="{{last_name}}"></div>
+        <div>伴侣：<input type="text" name="mate" value="{{mate}}"></div>
+        <div>父亲：<input type="text" name="father" value="{{father}}"></div>
+        <div>母亲：<input type="text" name="mother" value="{{mother}}"></div>
+        <div>后代：<input type="text" name="kids" value="{{kids}}"></div>
+        <div><input type="submit"></div>
+    </form>
+    家谱展示：<br>
+    <img src="{% static familytreepath %}" alt="家谱加载失败"><br>
+    家族成员：<br>
+    {% for person in family %}
+    <a href="/facelist/{{person}}">{{person}}</a>
+    {% endfor %}<br>
+    已录入同名照片一览：
+    <table border="1">
+        <tr>
+        {% for upload_time,path,count in facelist %}
+            <td>
+                上传时间：{{upload_time}}<br>
+                图片地址：{{path}}<br>
+                <img style="display: inline-block; width: 40%; max-width: 40%; height: auto;" src="{{path}}" alt="{{name}}备份图片不存在"><br>
+                <a href="/edit_pic/{{path}}">删除</a>
+            </td>
+        {% if  count == 0 %}
+        </tr>
+        <tr>
+        {% endif %}
+        {% endfor %}
+    </table>
+</body>
+</html>
