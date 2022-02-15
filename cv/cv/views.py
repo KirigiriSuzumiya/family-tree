@@ -19,6 +19,10 @@ def always():
     return context
 
 
+def about(request):
+    return render(request, 'about.html')
+
+
 def face_upload(request):
     context = always()
     return render(request, 'faceupload.html', context)
