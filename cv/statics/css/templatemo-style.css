@@ -294,7 +294,7 @@ img {
   border: none;
   border-radius: 0px;
   box-shadow: none;
-  margin-bottom: 20px;
+  margin-bottom: 0px;
   transition: all 0.4s ease-in;
   color: #fff;
 }
