@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	{% load static %}
-	<title>家·谱——人员录入—上传相片</title>
+	<title>家·谱——人员录入—补充信息</title>
     <meta name="keywords" content="">
 	<meta name="description" content="">
 	<meta charset="utf-8">
@@ -15,7 +15,6 @@
 	<link rel="stylesheet" href="/static/css/nivo-lightbox.css">
 	<link rel="stylesheet" href="/static/css/nivo_themes/default/default.css">
 	<link rel="stylesheet" href="/static/css/templatemo-style.css">
-	<link rel="stylesheet" href="/static/css/fileinput.min.css">
 	<link rel="stylesheet" href="/static/css/font-awesome.min.css">
 	<link href="/static/css/theme.css" rel="stylesheet">
 	<!-- google web font css -->
@@ -23,7 +22,7 @@
 
 </head>
 <body>
-	
+
 <!-- navigation -->
 
 	<div class="container">
@@ -60,26 +59,33 @@
 		<div class="row">
 			<div class="col-md-offset-2 col-md-8 col-sm-12">
 				<h2><i class="fa fa-user"></i>人员录入</h2>
-				<h3 class="col-md-4 col-sm-4"><i class="fa fa-spinner"></i>上传相片</h3>
-				<h3 class="col-md-4 col-sm-4" style="color:grey;"><i class="fa fa-arrow-right"></i>录入姓名</h3>
-				<h3 class="col-md-4 col-sm-4" style="color:grey;"><i class="fa fa-arrow-right"></i>补充信息</h3>
+				<h3 class="col-md-4 col-sm-4" style="color:grey;"><i class="fa fa-check" ></i>上传相片</h3>
+				<h3 class="col-md-4 col-sm-4" style="color:grey;"><i class="fa fa-check"></i>录入姓名</h3>
+				<h3 class="col-md-4 col-sm-4" ><i class="fa fa-spinner"></i>补充信息</h3>
 			</div>
 			<div class="col-md-10 col-md-offset-1 col-sm-12 mt30">
-				<h4>本地文件上传</h4>
-				<form name="pic_upload_form" method="POST" action="pic_upload" enctype="multipart/form-data">
-					{% csrf_token %}
-					<input name="pic" type="file" class="file" id="pic" data-language="zh" data-theme="explorer-fa" required="required" accept="image">
-				</form>
+                <h4>补充信息:</h4>
+
+				<table class="table">
+				  <tbody>
+				  {% for name in namelist %}
+					<tr>
+					  <td><h4>{{name}}</h4></td>
+					  <td><h4><a href="/facelist/{{name}}">详情>></a></h4></td>
+					</tr>
+				  {% endfor %}
+				  </tbody>
+				</table>
 			</div>
 		</div>
 	</div>
-</div>		
+</div>
 
 <!-- footer section -->
 <footer>
 	<div class="container">
 		<div class="row">
-        
+
 			<div class="col-md-5 col-sm-4">
 				<img src="/static/images/logo.png" class="img-responsive" alt="logo">
 				<p>家·谱——智能家谱录入查询是一款基于人脸识别与图像标签的在线家谱查询录入系统，提供人脸录入、识别到家谱构建的一站式服务
@@ -125,13 +131,10 @@
 	</div>
 </div>
 
-<!-- javascript js -->	
+<!-- javascript js -->
 	<script src="/static/js/jquery.js"></script>
 	<script src="/static/js/bootstrap.min.js"></script>
 	<script src="/static/js/nivo-lightbox.min.js"></script>
 	<script src="/static/js/custom.js"></script>
-	<script src="/static/js/fileinput.js"></script>
-	<script src="/static/js/zh.js"></script>
-	<script src="/static/js/theme.js"></script>
 </body>
 </html>

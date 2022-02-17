@@ -54,7 +54,7 @@ def pic_upload(request):
 
 def name_upload(request):
     BASE_DIR = Path(__file__).resolve().parent.parent
-    namelist = ''
+    namelist = []
     if request.POST:
         path_list = eval(request.POST["path_list"])
         for i in range(len(path_list)):
@@ -66,10 +66,9 @@ def name_upload(request):
             if name == '':
                 continue
             FaceRecognition.dict_add(path, name)
-            namelist += name+' '
-        if namelist == '':
-            namelist += "没有人脸"
-    return HttpResponse(namelist+"已上传"+r'<br><a href="/faceupload">返回</a>')
+            namelist.append(name)
+    context = {"namelist" : namelist}
+    return render(request, "info.html",context)
 
 
 def recognition(request):
