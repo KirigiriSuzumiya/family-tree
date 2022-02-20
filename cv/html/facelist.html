@@ -1,43 +1,242 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <title>{{name}}详情</title>
-    {% load static %}
+	{% load static %}
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<title>家·谱——{{name}}详情</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+	<link rel="stylesheet" href="/static/facelist/css/bootstrap.min.css">
+	<link rel="stylesheet" href="/static/facelist/css/bootstrap-theme.min.css">
+	<link rel="stylesheet" href="/static/facelist/css/fontAwesome.css">
+	<link rel="stylesheet" href="/static/facelist/css/light-box.css">
+	<link rel="stylesheet" href="/static/facelist/css/templatemo-main.css">
+
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800" rel="stylesheet">
+
+	<script src="/static/facelist/js/vendor/modernizr-2.8.3-respond-1.4.2.min.js"></script>
 </head>
+
 <body>
-    <form name='people_edit-form' method='post' action="/face_edit/{{name}}">
-        {% csrf_token %}
-        <div>{{name}}信息一览<a href="/namelist">返回</a></div>
-        <div>名：<input type="text" name="first_name" value="{{first_name}}"></div>
-        <div>姓：<input type="text" name="last_name" value="{{last_name}}"></div>
-        <div>伴侣：<input type="text" name="mate" value="{{mate}}"></div>
-        <div>父亲：<input type="text" name="father" value="{{father}}"></div>
-        <div>母亲：<input type="text" name="mother" value="{{mother}}"></div>
-        <div>后代：<input type="text" name="kids" value="{{kids}}"></div>
-        <div><input type="submit"></div>
-    </form>
-    家谱展示：<br>
-    <img src="{% static familytreepath %}" alt="家谱加载失败"><br>
-    家族成员：<br>
-    {% for person in family %}
-    <a href="/facelist/{{person}}">{{person}}</a>
-    {% endfor %}<br>
-    已录入同名照片一览：
-    <table border="1">
-        <tr>
-        {% for upload_time,path,count in facelist %}
-            <td>
-                上传时间：{{upload_time}}<br>
-                图片地址：{{path}}<br>
-                <img style="display: inline-block; width: 40%; max-width: 40%; height: auto;" src="{{path}}" alt="{{name}}备份图片不存在"><br>
-                <a href="/edit_pic/{{path}}">删除</a>
-            </td>
-        {% if  count == 0 %}
-        </tr>
-        <tr>
-        {% endif %}
-        {% endfor %}
-    </table>
+
+<div class="sequence">
+
+  <div class="seq-preloader">
+	<svg width="39" height="16" viewBox="0 0 39 16" xmlns="http://www.w3.org/2000/svg" class="seq-preload-indicator"><g fill="#F96D38"><path class="seq-preload-circle seq-preload-circle-1" d="M3.999 12.012c2.209 0 3.999-1.791 3.999-3.999s-1.79-3.999-3.999-3.999-3.999 1.791-3.999 3.999 1.79 3.999 3.999 3.999z"/><path class="seq-preload-circle seq-preload-circle-2" d="M15.996 13.468c3.018 0 5.465-2.447 5.465-5.466 0-3.018-2.447-5.465-5.465-5.465-3.019 0-5.466 2.447-5.466 5.465 0 3.019 2.447 5.466 5.466 5.466z"/><path class="seq-preload-circle seq-preload-circle-3" d="M31.322 15.334c4.049 0 7.332-3.282 7.332-7.332 0-4.049-3.282-7.332-7.332-7.332s-7.332 3.283-7.332 7.332c0 4.05 3.283 7.332 7.332 7.332z"/></g></svg>
+  </div>
+  
+</div>
+
+
+	<nav>
+	  <div class="logo">
+		  <h2 style="color:white;"><i class="fa fa-address-book"></i>人员详情</h2>
+	  </div>
+	  <div class="mini-logo">
+		  <h2 style="color:white;"><i class="fa fa-address-book"></i></h2>
+	  </div>
+	  <ul>
+		  <li><a href="#1"><i class="fa fa-home"></i> <em>概述</em></a></li>
+		  <li><a href="#2"><i class="fa fa-address-card"></i> <em>详细</em></a></li>
+		  <li><a href="#3"><i class="fa fa-users"></i> <em>家谱</em></a></li>
+		  <li><a href="#4"><i class="fa fa-image"></i> <em>图像</em></a></li>
+		  <li><a href="#5"><i class="fa fa-pencil"></i> <em>编辑</em></a></li>
+	  </ul>
+	</nav>
+	
+	<div class="slides">
+	  	<div class="slide" id="1">
+		<div class="content first-content">
+		  <div class="container-fluid">
+			  <div class="col-md-3">
+				  <div class="author-image"><img src="{{first_pic}}" alt=""></div>
+			  </div>
+			  <div class="col-md-9">
+				  <h2>{{name}}</h2>
+				  <p>概述</p>
+				  <div class="main-btn"><a href="#2">了解更多</a></div>
+			  </div>
+		  </div>
+		</div>
+	  </div>
+	  	<div class="slide" id="2">
+		<div class="content second-content">
+			<div class="container-fluid">
+				<div class="col-md-6">
+					<div class="left-content">
+						<h2>{{name}}</h2>
+						<p>详细1</p>
+						<p>详细2</p>
+						<p>详细3</p>
+						<p>详细4</p>
+					  <div class="main-btn"><a href="#3">查看TA的家族</a></div>
+				  </div>
+				</div>
+				<div class="col-md-6">
+					<div class="right-image">
+					  <img src="img/about_image.jpg" alt="">
+				  </div>
+				</div>
+			</div>
+		</div>
+	  </div>
+	  	<div class="slide" id="3">
+		<div class="content third-content">
+			<div class="container-fluid">
+				<div class="col-md-12">
+					<div class="row">
+						<div class="first-section">
+							<div class="container-fluid">
+								<div class="row">
+									<div>
+										<h2 class="col-md-12 col-xs-12" style="color:white;"><i class="fa fa-users"></i>家谱展示</h2>
+										<div class="col-md-8 col-m-offset-2 col-xs-12">
+											<img src="{% static familytreepath %}" class="img-responsive" alt="家谱加载失败">
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="second-section">
+							<div class="container-fluid">
+								<div class="row">
+										<div class="right-content">
+											<h2 class="col-md-12 col-xs-12">家族成员</h2>
+											    {% for person in family %}
+													<span onclick="window.open('/facelist/{{person}}'); window.close();" class="main-btn"><a href="">{{person}}</a>
+													</span>
+												{% endfor %}
+
+										</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	  </div>
+		<div class="slide" id="4">
+		<div class="content fourth-content">
+			<div class="container-fluid">
+				<div class="row mt10">
+					{% for upload_time,path,count in facelist %}
+					<div class="col-md-3 col-sm-6">
+						<div class="item">
+							<div class="thumb">
+								<a href="{{path}}" data-lightbox="image-1"><div class="hover-effect">
+									<div class="hover-content">
+										<h2>{{name}}</h2>
+										<p>上传时间：</p>
+										<p>{{upload_time}}</p>
+									</div>
+								</div></a>
+								<div class="image">
+									<img src="{{path}}">
+								</div>
+							</div>
+						</div>
+					</div>
+					{% if  count == 0 %}
+				</div>
+				<div class="row mt10">
+        			{% endif %}
+					{% endfor %}
+
+				</div>
+			</div>
+		</div>
+	  </div>
+		<div class="slide" id="5">
+			<div class="content fifth-content">
+				<div class="container-fluid" style="color:white">
+					<form name='people_edit-form' method='post' action="/face_edit/{{name}}">
+						{% csrf_token %}
+						<h2>{{name}}信息编辑</h2>
+						<div class="row">
+							<div class="col-md-6 col-xs-12">
+									<h3 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">名：<input type="text" name="first_name" value="{{first_name}}"></h3>
+									<h3 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">姓：<input type="text" name="last_name" value="{{last_name}}"></h3>
+									<h3 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">伴侣：<input type="text" name="mate" value="{{mate}}"></h3>
+							</div>
+							<div class="col-md-6 col-xs-12">
+									<h3 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">父亲：<input type="text" name="father" value="{{father}}"></h3>
+									<h3 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">母亲：<input type="text" name="mother" value="{{mother}}"></h3>
+									<h3 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">后代：<input type="text" name="kids" value="{{kids}}"></h3>
+							</div>
+							<h2 class="col-md-2 col-md-offset-5">
+								<button type="submit" class="btn btn-default">提交</button>
+							</h2>
+						</div>
+					</form>
+				</div>
+			</div>
+		  </div>
+		</div>
+	</div>
+
+	<div class="footer">
+
+	  <div class="content">
+
+		  <p>
+			  <div >
+				  <a href="/namelist" class="btn"><i class="fa fa-mail-reply"></i>返回列表</a>
+			  </div>
+		  </p>
+	  </div>
+	</div>
+
+
+<script src="/static/facelist/js/vendor/jquery-1.11.2.min.js"></script>
+
+<script src="/static/facelist/js/vendor/bootstrap.min.js"></script>
+
+<script src="/static/facelist/js/datepicker.js"></script>
+<script src="/static/facelist/js/plugins.js"></script>
+<script src="/static/facelist/js/main.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+
+	
+
+	// navigation click actions 
+	$('.scroll-link').on('click', function(event){
+		event.preventDefault();
+		var sectionID = $(this).attr("data-id");
+		scrollToID('#' + sectionID, 750);
+	});
+	// scroll to top action
+	$('.scroll-top').on('click', function(event) {
+		event.preventDefault();
+		$('html, body').animate({scrollTop:0}, 'slow');         
+	});
+	// mobile nav toggle
+	$('#nav-toggle').on('click', function (event) {
+		event.preventDefault();
+		$('#main-nav').toggleClass("open");
+	});
+});
+// scroll function
+function scrollToID(id, speed){
+	var offSet = 0;
+	var targetOffset = $(id).offset().top - offSet;
+	var mainNav = $('#main-nav');
+	$('html,body').animate({scrollTop:targetOffset}, speed);
+	if (mainNav.hasClass("open")) {
+		mainNav.css("height", "1px").removeClass("in").addClass("collapse");
+		mainNav.removeClass("open");
+	}
+}
+if (typeof console === "undefined") {
+	console = {
+		log: function() { }
+	};
+}
+</script>
 </body>
 </html>

@@ -137,6 +137,7 @@ def facelist(request, name):
     context['kids'] = name_obj.kids
     context['family'] =[]
     face_obj_list = FaceImage.objects.filter(name=name_obj)
+    context['first_pic'] = '/static/'+face_obj_list[0].path
     count = 0
     for face_obj in face_obj_list:
         path = '/static/'+face_obj.path
