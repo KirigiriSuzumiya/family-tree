@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>人脸目录查询与编辑</title>
+    {% load static %}
+</head>
+<body>
+    <div>已录入人脸查询</div><a href="index">返回主页</a>
+    <div hidden>已加载人脸：{{info}}</div>
+    <div>当前时间：{{time}}</div>
+    <div style="color:red;">公告：{{call}}</div>
+    <table border="1">
+        <tr>
+        {% for name,upload_time,path,traceback,count in namelist %}
+            <td>
+                姓名：{{name}}<br>
+                示例图片：<br>
+                <img style="display: inline-block; width: 40%; max-width: 40%; height: auto;" src="{{path}}" alt="{{name}}备份图片不存在"><br>
+                <a href="facelist/{{name}}">详情>></a><br>
+                <a href="/admin">删除</a>
+            </td>
+        {% if  count == 0 %}
+        </tr>
+        <tr>
+        {% endif %}
+        {% endfor %}
+    </table>
+    <div>故障联系方式：</div>
+    <div>qq：2424690968</div>
+    <div>电话：13774383668</div>
+    <div>邮箱：boyifan1@126.com</div>
+</body>
+</html>
+
+
+
+
+<table border="0" class="table table-bordered">
+				<tr>
+				{% for name,upload_time,path,traceback,count in namelist %}
+					<td class="col-md-3 col-sm-3 col-xs-6">
+						<img style="display: inline-block; width: 60%; max-width: 60%; height: auto;" src="{{path}}" class="img-responsive" alt="{{name}}">
+						<h3 style="display:block;word-break:keep-all;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{name}}</h3>
+						<h4><a href="facelist/{{name}}">详情>></a></h4>
+						<a href="/admin">删除</a>
+					</td>
+				{% if  count == 0 %}
+				</tr>
+				<tr>
+				{% endif %}
+				{% endfor %}
+			 </table>
