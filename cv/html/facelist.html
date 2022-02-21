@@ -15,7 +15,7 @@
 	<link rel="stylesheet" href="/static/facelist/css/light-box.css">
 	<link rel="stylesheet" href="/static/facelist/css/templatemo-main.css">
 
-	<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800" rel="stylesheet">
+<!--	<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800" rel="stylesheet">-->
 
 	<script src="/static/facelist/js/vendor/modernizr-2.8.3-respond-1.4.2.min.js"></script>
 </head>
@@ -40,7 +40,7 @@
 	  </div>
 	  <ul>
 		  <li><a href="#1"><i class="fa fa-home"></i> <em>概述</em></a></li>
-		  <li><a href="#2"><i class="fa fa-address-card"></i> <em>详细</em></a></li>
+		  <li><a href="#2"><i class="fa fa-map"></i> <em>地图</em></a></li>
 		  <li><a href="#3"><i class="fa fa-users"></i> <em>家谱</em></a></li>
 		  <li><a href="#4"><i class="fa fa-image"></i> <em>图像</em></a></li>
 		  <li><a href="#5"><i class="fa fa-pencil"></i> <em>编辑</em></a></li>
@@ -56,8 +56,7 @@
 			  </div>
 			  <div class="col-md-9">
 				  <h2>{{name}}</h2>
-				  <p>概述</p>
-				  <div class="main-btn"><a href="#2">了解更多</a></div>
+				  <p>{{info|default:"<p>没有留下概述。</p><div class='main-btn'><a href='#5'>去补充>></a></div>"|safe}}</p>
 			  </div>
 		  </div>
 		</div>
@@ -65,20 +64,29 @@
 	  	<div class="slide" id="2">
 		<div class="content second-content">
 			<div class="container-fluid">
-				<div class="col-md-6">
-					<div class="left-content">
-						<h2>{{name}}</h2>
-						<p>详细1</p>
-						<p>详细2</p>
-						<p>详细3</p>
-						<p>详细4</p>
-					  <div class="main-btn"><a href="#3">查看TA的家族</a></div>
-				  </div>
-				</div>
-				<div class="col-md-6">
-					<div class="right-image">
-					  <img src="img/about_image.jpg" alt="">
-				  </div>
+				<div class="col-md-12 third-content">
+						<h2 class="col-md-12 col-xs-12" style="color:white;"><i class="fa fa-map"></i>地图标记展示</h2>
+						<script src="//api.map.baidu.com/api?type=webgl&v=1.0&ak=2nA3yRr0qVsKsjfykAAheoXwncT27Kvi"></script>
+						  <div class="col-md-12 col-xs-12" style="height:400px;" id="map-container"></div>
+							  <script>
+								  var map = new BMapGL.Map('map-container');
+								  var point = new BMapGL.Point({{loc_x|default:"121.510342"}}, {{loc_y|default:"30.83673"}});
+								  map.centerAndZoom(point, 17);
+								  var marker = new BMapGL.Marker(point);  // 创建标注
+								  map.addOverlay(marker);
+								  var opts = {
+									  width: 300,
+									  height: 100,
+									  title: '{{name}}'
+								  };
+								  var infoWindow = new BMapGL.InfoWindow('（{{loc_x|default:"默认经度"}}, {{loc_y|default:"默认纬度"}}）', opts);
+								  map.openInfoWindow(infoWindow, point);
+								  var scaleCtrl = new BMapGL.ScaleControl();  // 添加比例尺控件
+								  map.addControl(scaleCtrl);
+								  var zoomCtrl = new BMapGL.ZoomControl();  // 添加比例尺控件
+								  map.addControl(zoomCtrl);
+							  </script>
+					  <div class="main-btn"><a href="#5">补充地图标点信息>></a></div>
 				</div>
 			</div>
 		</div>
@@ -95,6 +103,9 @@
 										<h2 class="col-md-12 col-xs-12" style="color:white;"><i class="fa fa-users"></i>家谱展示</h2>
 										<div class="col-md-8 col-m-offset-2 col-xs-12">
 											<img src="{% static familytreepath %}" class="img-responsive" alt="家谱加载失败">
+											<p>*家谱是动态生成的，您只需要补充完整所需信息即可
+												<div class='main-btn'><a href='#5'>去补充>></a></div>
+											</p>
 										</div>
 									</div>
 								</div>
@@ -155,22 +166,40 @@
 				<div class="container-fluid" style="color:white">
 					<form name='people_edit-form' method='post' action="/face_edit/{{name}}">
 						{% csrf_token %}
-						<h2>{{name}}信息编辑</h2>
+						<div class="  third-content">
+							<h2 class="col-md-12"><i class="fa fa-pencil"></i>{{name}}编辑</h2>
+						</div>
+
 						<div class="row">
-							<div class="col-md-6 col-xs-12">
-									<h3 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">名：<input type="text" name="first_name" value="{{first_name}}"></h3>
-									<h3 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">姓：<input type="text" name="last_name" value="{{last_name}}"></h3>
-									<h3 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">伴侣：<input type="text" name="mate" value="{{mate}}"></h3>
+							<div class="col-md-6 col-xs-12" style="border:5px;">
+								<fieldset>
+									<legend><h3 style="color:white">本人信息</h3></legend>
+
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="first_name" id="first_name" value="{{first_name}}" placeholder="请输入名"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="last_name" value="{{last_name}}" placeholder="请输入姓"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="info" value="{{info}}" placeholder="请输入简述"></h5>
+									<div class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">
+										<h5 class="col-md-5 col-xs-5"><input type="text" name="loc_x" value="{{loc_x}}" placeholder="请输入经度"></h5>
+										<h5 class="col-md-5 col-xs-5 col-md-offset-2 col-xs-offset-2"><input type="text" name="loc_y" value="{{loc_y}}" placeholder="请输入纬度"></h5>
+									</div>
+								</fieldset>
+
 							</div>
 							<div class="col-md-6 col-xs-12">
-									<h3 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">父亲：<input type="text" name="father" value="{{father}}"></h3>
-									<h3 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">母亲：<input type="text" name="mother" value="{{mother}}"></h3>
-									<h3 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">后代：<input type="text" name="kids" value="{{kids}}"></h3>
+								<fieldset>
+									<legend><h3 style="color:white">家族信息</h3></legend>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="mate" value="{{mate}}" placeholder="请输入伴侣"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="father" value="{{father}}" placeholder="请输入父亲"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="mother" value="{{mother}}" placeholder="请输入母亲"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="kids" value='{{kids}}' placeholder="请输入后代,遵循json格式"></h5>
+								</fieldset>
 							</div>
+						</div>
+
 							<h2 class="col-md-2 col-md-offset-5">
 								<button type="submit" class="btn btn-default">提交</button>
 							</h2>
-						</div>
+
 					</form>
 				</div>
 			</div>

@@ -12,6 +12,10 @@ class People(models.Model):
     father = models.CharField(max_length=50, blank=True)
     mother = models.CharField(max_length=50, blank=True)
     kids = models.JSONField(blank=True, null=True)
+    info = models.CharField(max_length=500, blank=True)
+    loc_x = models.CharField(max_length=50, blank=True)
+    loc_y = models.CharField(max_length=50, blank=True)
+
     def __str__(self):
         return self.name
 

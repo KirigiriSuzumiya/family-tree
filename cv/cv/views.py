@@ -135,6 +135,9 @@ def facelist(request, name):
     context['father'] = name_obj.father
     context['mother'] = name_obj.mother
     context['kids'] = name_obj.kids
+    context['info'] = name_obj.info
+    context['loc_x'] = name_obj.loc_x
+    context['loc_y'] = name_obj.loc_y
     context['family'] =[]
     face_obj_list = FaceImage.objects.filter(name=name_obj)
     context['first_pic'] = '/static/'+face_obj_list[0].path
@@ -158,7 +161,13 @@ def face_edit(request, re_name):
     people_obj.mate = request.POST['mate']
     people_obj.father = request.POST['father']
     people_obj.mother = request.POST['mother']
-    people_obj.kids = eval(request.POST['kids'])
+    people_obj.loc_x = request.POST['loc_x']
+    people_obj.loc_y = request.POST['loc_y']
+    try:
+        people_obj.kids = eval(request.POST['kids'])
+    except:
+        people_obj.kids = request.POST['kids']
+    people_obj.info = request.POST['info']
     people_obj.save()
     return HttpResponse(re_name+"已修改"+r'<br><a href="/facelist/%s">返回</a>' % people_obj.name)
 
@@ -226,10 +235,10 @@ def familytree(request, name):
     fp = open(gra_path, 'w+')
     subprocess.run(shell, stdout=fp, shell=True)
     fp.close()
-    # os.remove(path)
+    os.remove(path)
     shell = "dot -Tpng " + gra_path+" -O"
     subprocess.run(shell,  shell=True)
-    # os.remove(gra_path)
+    os.remove(gra_path)
     context={}
     context["name"] = name
     context["path"] = "temp_image/"+os.path.basename(gra_path)+".png"

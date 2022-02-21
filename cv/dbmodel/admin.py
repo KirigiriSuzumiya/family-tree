@@ -5,7 +5,7 @@ from .models import People, FaceImage
 
 class PeopleAdmin(admin.ModelAdmin):
     # ...
-    list_display = ('name', 'first_name', 'last_name', 'mate', 'father', 'mother', 'kids', 'custom_id')
+    list_display = ('name', 'first_name', 'last_name', 'mate', 'father', 'mother', 'kids', 'custom_id', 'info')
 
 
 class FaceImageAdmin(admin.ModelAdmin):
