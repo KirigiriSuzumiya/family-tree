@@ -30,6 +30,9 @@ urlpatterns = [
     re_path(r'facelist/(.*)$', views.facelist),
     re_path(r'face_edit/(.*)$', views.face_edit),
     re_path(r'edit_pic/(.*)$', views.edit_pic),
+    re_path(r'pic_info/(.*)$', views.pic_info),
+    re_path(r'pic_info_edit/(.*)$', views.pic_info_edit),
+
 ]
 
 

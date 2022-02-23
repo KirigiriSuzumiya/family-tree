@@ -1,11 +1,11 @@
 from django.contrib import admin
 
-from .models import People, FaceImage
+from .models import People, FaceImage, Image
 
 
 class PeopleAdmin(admin.ModelAdmin):
     # ...
-    list_display = ('name', 'first_name', 'last_name', 'mate', 'father', 'mother', 'kids', 'custom_id', 'info')
+    list_display = ('name', 'first_name', 'last_name', 'mate', 'father', 'mother', 'kids', 'info')
 
 
 class FaceImageAdmin(admin.ModelAdmin):
@@ -15,4 +15,5 @@ class FaceImageAdmin(admin.ModelAdmin):
 # Register your models here.
 admin.site.register(People, PeopleAdmin)
 admin.site.register(FaceImage, FaceImageAdmin)
+admin.site.register(Image)
 admin.site.site_header = '人脸数据后台管理系统'

@@ -3,7 +3,8 @@ from PIL import Image,ImageDraw,ImageFont
 import glob
 import os
 from pathlib import Path
-
+from dbmodel.models import FaceImage, People
+from dbmodel.models import Image as image_db
 
 def extractor(img_path):
     BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -20,8 +21,11 @@ def extractor(img_path):
         box = (face_list[i][3], face_list[i][0], face_list[i][1], face_list[i][2])
         draw.rectangle(box, None, 'yellow')
         draw.text((box[0:2]), str(i+1), "red", ft)
-    img_path = os.path.join(BASE_DIR, 'statics', 'temp_image', os.path.split(img_path)[-1])
-    pil_image.save(img_path[0:img_path.rfind('.')]+'-0'+img_path[img_path.rfind("."):])
+    img_path = os.path.join(BASE_DIR, 'cv', 'model_image', os.path.split(img_path)[-1])
+    pil_image.save(img_path)
+    img_path = os.path.join(BASE_DIR, 'statics', 'temp_image',os.path.split(img_path)[-1])
+    image = image_db(path=os.path.split(img_path)[-1])
+    image.save()
     # 保存各个人头大头贴
     count = 1
     for location in locations:

@@ -70,7 +70,8 @@
 						  <div class="col-md-12 col-xs-12" style="height:400px;" id="map-container"></div>
 							  <script>
 								  var map = new BMapGL.Map('map-container');
-								  var point = new BMapGL.Point({{loc_x|default:"121.510342"}}, {{loc_y|default:"30.83673"}});
+
+								  var point = new BMapGL.Point({{loc1_x|default:"121.510342"}}, {{loc1_y|default:"30.83673"}});
 								  map.centerAndZoom(point, 17);
 								  var marker = new BMapGL.Marker(point);  // 创建标注
 								  map.addOverlay(marker);
@@ -79,8 +80,43 @@
 									  height: 100,
 									  title: '{{name}}'
 								  };
-								  var infoWindow = new BMapGL.InfoWindow('（{{loc_x|default:"默认经度"}}, {{loc_y|default:"默认纬度"}}）', opts);
+								  var infoWindow = new BMapGL.InfoWindow('（{{loc1_x|default:"默认经度"}}, {{loc1_y|default:"默认纬度"}}）{{loc1_info|default:""}}', opts);
 								  map.openInfoWindow(infoWindow, point);
+
+								  var point1 = new BMapGL.Point({{loc2_x|default:"121.510342"}}, {{loc2_y|default:"30.83673"}});
+								  var marker1 = new BMapGL.Marker(point1);  // 创建标注
+								  map.addOverlay(marker1);
+								  var opts = {
+									  width: 300,
+									  height: 100,
+									  title: '{{name}}'
+								  };
+								  var infoWindow1 = new BMapGL.InfoWindow('（{{loc2_x|default:"默认经度"}}, {{loc2_y|default:"默认纬度"}}）{{loc2_info|default:""}}', opts);
+
+								  var point2 = new BMapGL.Point({{loc3_x|default:"121.510342"}}, {{loc3_y|default:"30.83673"}});
+								  var marker2 = new BMapGL.Marker(point2);  // 创建标注
+								  map.addOverlay(marker2);
+								  var opts = {
+									  width: 300,
+									  height: 100,
+									  title: '{{name}}'
+								  };
+								  var infoWindow2 = new BMapGL.InfoWindow('（{{loc3_x|default:"默认经度"}}, {{loc3_y|default:"默认纬度"}}）{{loc3_info|default:""}}', opts);
+
+
+
+								  marker.addEventListener("click", function(){
+    									map.openInfoWindow(infoWindow, point);
+									});
+								  marker1.addEventListener("click", function(){
+    									map.openInfoWindow(infoWindow1, point1);
+									});
+								  marker2.addEventListener("click", function(){
+    									map.openInfoWindow(infoWindow2, point2);
+									});
+
+
+
 								  var scaleCtrl = new BMapGL.ScaleControl();  // 添加比例尺控件
 								  map.addControl(scaleCtrl);
 								  var zoomCtrl = new BMapGL.ZoomControl();  // 添加比例尺控件
@@ -102,7 +138,7 @@
 									<div>
 										<h2 class="col-md-12 col-xs-12" style="color:white;"><i class="fa fa-users"></i>家谱展示</h2>
 										<div class="col-md-8 col-m-offset-2 col-xs-12">
-											<img src="{% static familytreepath %}" class="img-responsive" alt="家谱加载失败">
+											<img src="{% static familytreepath %}" class="img-responsive" style="height:100%; width:auto;" alt="家谱加载失败">
 											<p>*家谱是动态生成的，您只需要补充完整所需信息即可
 												<div class='main-btn'><a href='#5'>去补充>></a></div>
 											</p>
@@ -134,17 +170,20 @@
 		<div class="content fourth-content">
 			<div class="container-fluid">
 				<div class="row mt10">
-					{% for upload_time,path,count in facelist %}
+					{% for upload_time,path,count,re_path in facelist %}
 					<div class="col-md-3 col-sm-6">
 						<div class="item">
 							<div class="thumb">
-								<a href="{{path}}" data-lightbox="image-1"><div class="hover-effect">
-									<div class="hover-content">
-										<h2>{{name}}</h2>
-										<p>上传时间：</p>
-										<p>{{upload_time}}</p>
+								<a href="/pic_info/{{re_path}}" >
+									<div class="hover-effect">
+										<div class="hover-content">
+											<h2>{{name}}</h2>
+											<p>上传时间：</p>
+											<p>{{upload_time}}</p>
+											<p>点击以查看头像来源>></p>
+										</div>
 									</div>
-								</div></a>
+								</a>
 								<div class="image">
 									<img src="{{path}}">
 								</div>
@@ -173,25 +212,48 @@
 						<div class="row">
 							<div class="col-md-6 col-xs-12" style="border:5px;">
 								<fieldset>
-									<legend><h3 style="color:white">本人信息</h3></legend>
+									<legend><h3 style="color:white">详细姓名</h3></legend>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="name" value="{{name}}" placeholder="全名"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="first_name" value="{{first_name|default:''}}" placeholder="first name"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="middle_name" value="{{middle_name|default:''}}" placeholder="middle name"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="last_name" value="{{last_name|default:''}}" placeholder="last name"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="xing" value="{{xing|default:''}}" placeholder="中文姓氏"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="ming" value="{{ming|default:''}}" placeholder="中文名字"></h5>
 
-									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="first_name" id="first_name" value="{{first_name}}" placeholder="请输入名"></h5>
-									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="last_name" value="{{last_name}}" placeholder="请输入姓"></h5>
-									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="info" value="{{info}}" placeholder="请输入简述"></h5>
+								</fieldset>
+								<fieldset>
+									<legend><h3 style="color:white">地图标点</h3></legend>
 									<div class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">
-										<h5 class="col-md-5 col-xs-5"><input type="text" name="loc_x" value="{{loc_x}}" placeholder="请输入经度"></h5>
-										<h5 class="col-md-5 col-xs-5 col-md-offset-2 col-xs-offset-2"><input type="text" name="loc_y" value="{{loc_y}}" placeholder="请输入纬度"></h5>
+										<h5 class="col-md-5 col-xs-5"><input type="text" name="loc1_x" value="{{loc1_x|default:''}}" placeholder="标点1经度"></h5>
+										<h5 class="col-md-5 col-xs-5 col-md-offset-2 col-xs-offset-2"><input type="text" name="loc1_y" value="{{loc1_y|default:''}}" placeholder="标点1纬度"></h5>
+										<h5 class="col-md-12 col-xs-12"><input type="text" name="loc1_info" value="{{loc1_info|default:''}}" placeholder="标点1注释"></h5>
+									</div>
+									<div class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">
+										<h5 class="col-md-5 col-xs-5"><input type="text" name="loc2_x" value="{{loc2_x|default:''}}" placeholder="标点2经度"></h5>
+										<h5 class="col-md-5 col-xs-5 col-md-offset-2 col-xs-offset-2"><input type="text" name="loc2_y" value="{{loc2_y|default:''}}" placeholder="标点2纬度"></h5>
+										<h5 class="col-md-12 col-xs-12"><input type="text" name="loc2_info" value="{{loc2_info|default:''}}" placeholder="标点2注释"></h5>
+									</div>
+									<div class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">
+										<h5 class="col-md-5 col-xs-5"><input type="text" name="loc3_x" value="{{loc3_x|default:''}}" placeholder="标点3经度"></h5>
+										<h5 class="col-md-5 col-xs-5 col-md-offset-2 col-xs-offset-2"><input type="text" name="loc3_y" value="{{loc3_y|default:''}}" placeholder="标点3纬度"></h5>
+										<h5 class="col-md-12 col-xs-12"><input type="text" name="loc3_info" value="{{loc3_info|default:''}}" placeholder="标点3注释"></h5>
 									</div>
 								</fieldset>
 
 							</div>
 							<div class="col-md-6 col-xs-12">
 								<fieldset>
-									<legend><h3 style="color:white">家族信息</h3></legend>
-									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="mate" value="{{mate}}" placeholder="请输入伴侣"></h5>
-									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="father" value="{{father}}" placeholder="请输入父亲"></h5>
-									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="mother" value="{{mother}}" placeholder="请输入母亲"></h5>
-									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="kids" value='{{kids}}' placeholder="请输入后代,遵循json格式"></h5>
+									<legend><h3 style="color:white">个人与家族</h3></legend>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="mate" value="{{mate|default:''}}" placeholder="伴侣"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="father" value="{{father|default:''}}" placeholder="父亲"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="mother" value="{{mother|default:''}}" placeholder="母亲"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="kids" value="{{kids|default:''}}" placeholder="后代,遵循json格式"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="datetime-local" name="birth_date" value="{{birth_date|default:''}}" placeholder="出生日期"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="datetime-local" name="death_date" value="{{death_date|default:''}}" placeholder="去世日期"></h5>
+								</fieldset>
+								<fieldset>
+									<legend><h3 style="color:white">人物概述</h3></legend>
+									<div class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><textarea name="info" placeholder="简述">{{info|default:''}}</textarea></div>
 								</fieldset>
 							</div>
 						</div>

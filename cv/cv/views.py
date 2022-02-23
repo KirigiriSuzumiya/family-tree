@@ -1,3 +1,4 @@
+from click import style
 from django.http import HttpResponse
 from django.shortcuts import render
 import os
@@ -6,9 +7,10 @@ from pathlib import Path
 from .codes import FaceRecognition, FaceExtractor
 from .settings import BASE_DIR
 from dbmodel.models import FaceImage, People
+from dbmodel.models import Image as image_db
 import subprocess
 import re
-
+# -*- coding: CP936 -*-
 
 def always():
     context = {
@@ -37,14 +39,14 @@ def pic_upload(request):
         for line in submit_pic:
             f.write(line)
     img_path = os.path.join(BASE_DIR, "upload", pic_path)
-    try:
-        face_num = FaceExtractor.extractor(img_path)
-    except:
-        return HttpResponse("您上传的文件不是合法的图片文件"+r'<br><a href="/faceupload">返回</a>')
+    # try:
+    face_num = FaceExtractor.extractor(img_path)
+    # except:
+    #     return HttpResponse("您上传的文件不是合法的图片文件"+r'<br><a href="/faceupload">返回</a>')
 
     context = {}
     context["upload_states"] = "上传成功！共找到%d个人脸" % face_num
-    context["total_path"] = os.path.join("temp_image", pic_path[0:pic_path.rfind('.')]+'-0'+pic_path[pic_path.rfind("."):])
+    context["total_path"] = os.path.join(pic_path)
     path_list = []
     for i in range(face_num):
         path_list.append(os.path.join("temp_image", pic_path[0:pic_path.rfind('.')]+'-'+str(i+1)+pic_path[pic_path.rfind("."):]))
@@ -130,14 +132,28 @@ def facelist(request, name):
     context['facelist'] = []
     name_obj = People.objects.filter(name=name)[0]
     context['first_name'] = name_obj.first_name
+    context['middle_name'] = name_obj.middle_name
     context['last_name'] = name_obj.last_name
+    context['sex'] = name_obj.sex
+    context['birth_date'] = str(name_obj.birth_date).replace('年', '-').replace('月', '-').replace('日', '-').replace(' ', 'T')
+    context['death_date'] = str(name_obj.death_date).replace('年', '-').replace('月', '-').replace('日', '-').replace(' ', 'T')
+    context['xing'] = name_obj.xing
+    context['ming'] = name_obj.ming
+
     context['mate'] = name_obj.mate
     context['father'] = name_obj.father
     context['mother'] = name_obj.mother
     context['kids'] = name_obj.kids
     context['info'] = name_obj.info
-    context['loc_x'] = name_obj.loc_x
-    context['loc_y'] = name_obj.loc_y
+    context['loc1_x'] = name_obj.loc1_x
+    context['loc1_y'] = name_obj.loc1_y
+    context['loc1_info'] = name_obj.loc1_info
+    context['loc2_x'] = name_obj.loc2_x
+    context['loc2_y'] = name_obj.loc2_y
+    context['loc2_info'] = name_obj.loc2_info
+    context['loc3_x'] = name_obj.loc3_x
+    context['loc3_y'] = name_obj.loc3_y
+    context['loc3_info'] = name_obj.loc3_info
     context['family'] =[]
     face_obj_list = FaceImage.objects.filter(name=name_obj)
     context['first_pic'] = '/static/'+face_obj_list[0].path
@@ -146,7 +162,8 @@ def facelist(request, name):
         path = '/static/'+face_obj.path
         upload_time = face_obj.upload_time
         count = (count+1) % 4
-        context['facelist'].append([upload_time, path, count])
+        re_path = face_obj.image.path
+        context['facelist'].append([upload_time, path, count,re_path])
 
     context["familytreepath"], family = familytree(request, name)["path"], familytree(request, name)["check"]
     for i in family:
@@ -156,18 +173,40 @@ def facelist(request, name):
 
 def face_edit(request, re_name):
     people_obj = People.objects.get(name=re_name)
+    people_obj.name = request.POST['name']
     people_obj.first_name = request.POST['first_name']
+    people_obj.middle_name = request.POST['middle_name']
     people_obj.last_name = request.POST['last_name']
+    # people_obj.sex = request.POST['sex']
+    if request.POST['birth_date']:
+        people_obj.birth_date = request.POST['birth_date']
+    else:
+        people_obj.birth_date = None
+    if request.POST['death_date']:
+        people_obj.death_date = request.POST['death_date']
+    else:
+        people_obj.death_date = None
     people_obj.mate = request.POST['mate']
     people_obj.father = request.POST['father']
     people_obj.mother = request.POST['mother']
-    people_obj.loc_x = request.POST['loc_x']
-    people_obj.loc_y = request.POST['loc_y']
     try:
         people_obj.kids = eval(request.POST['kids'])
     except:
         people_obj.kids = request.POST['kids']
+
     people_obj.info = request.POST['info']
+    people_obj.loc1_x = request.POST['loc1_x']
+    people_obj.loc1_y = request.POST['loc1_y']
+    people_obj.loc1_info = request.POST['loc1_info']
+    people_obj.loc2_x = request.POST['loc2_x']
+    people_obj.loc2_y = request.POST['loc2_y']
+    people_obj.loc2_info = request.POST['loc2_info']
+    people_obj.loc3_x = request.POST['loc3_x']
+    people_obj.loc3_y = request.POST['loc3_y']
+    people_obj.loc3_info = request.POST['loc3_info']
+
+    people_obj.xing = request.POST['xing']
+    people_obj.ming = request.POST['ming']
     people_obj.save()
     return HttpResponse(re_name+"已修改"+r'<br><a href="/facelist/%s">返回</a>' % people_obj.name)
 
@@ -187,36 +226,13 @@ def familytree(request, name):
     people_obj = People.objects.get(name=name)
     peo_obj_list = [people_obj]
     path = os.path.join(BASE_DIR, 'statics', 'temp_image', str(time.time())+'.txt')
-    fp = open(path, "w+")
+    fp = open(path, "w+", encoding="utf-8")
     fp.close()
     check = set()
     # bfs遍历
     while peo_obj_list:
-        print(check)
+        # print(check)
         peo_now = peo_obj_list[0]
-        couple_obj = re_familytree(peo_now, path)
-        for obj in couple_obj:
-            check.add(obj)
-        del peo_obj_list[0]
-        # 将父亲加入队列
-        try:
-            People.objects.get(name=peo_now.father)
-            if People.objects.get(name=peo_now.father) not in check:
-                peo_obj_list.append(People.objects.get(name=peo_now.father))
-        except:
-
-            # 将母亲加入队列
-            try:
-                People.objects.get(name=peo_now.mother)
-                if People.objects.get(name=peo_now.mother) not in check:
-                    peo_obj_list.append(People.objects.get(name=peo_now.mother))
-            except:
-                pass
-            finally:
-                pass
-        finally:
-            pass
-
         # 将孩子加入队列
         kids_list = peo_now.kids
         if not kids_list:
@@ -230,15 +246,92 @@ def familytree(request, name):
                 pass
             finally:
                 pass
+
+        # 将配偶加进队列
+        try:
+            People.objects.get(name=peo_now.mate)
+            if People.objects.get(name=peo_now.mate) not in check:
+                peo_obj_list.append(People.objects.get(name=peo_now.mate))
+                re_peo_now = People.objects.get(name=peo_now.mate)
+                try:
+                    People.objects.get(name=re_peo_now.father)
+                    if People.objects.get(name=re_peo_now.father) not in check:
+                        peo_obj_list.append(People.objects.get(name=re_peo_now.father))
+                        if peo_obj_list[-1] not in check:
+                            couple_obj = re_familytree(peo_obj_list[-1], path)
+                            for obj in couple_obj:
+                                check.add(obj)
+                except:
+                    pass
+                finally:
+                    pass
+
+                # 将母亲加入队列
+                try:
+                    People.objects.get(name=re_peo_now.mother)
+                    if People.objects.get(name=re_peo_now.father) not in check:
+                        peo_obj_list.append(People.objects.get(name=re_peo_now.mother))
+                        if peo_obj_list[-1] not in check:
+                            couple_obj = re_familytree(peo_obj_list[-1], path)
+                            for obj in couple_obj:
+                                check.add(obj)
+                except:
+                    pass
+                finally:
+                    pass
+        except:
+            pass
+        finally:
+            pass
+
+        # 将父亲加入队列
+        try:
+            People.objects.get(name=peo_now.father)
+            if People.objects.get(name=peo_now.father) not in check:
+                peo_obj_list.append(People.objects.get(name=peo_now.father))
+                if peo_obj_list[-1] not in check:
+                    couple_obj = re_familytree(peo_obj_list[-1], path)
+                    for obj in couple_obj:
+                        check.add(obj)
+        except:
+            pass
+        finally:
+            pass
+
+        # 将母亲加入队列
+        try:
+            People.objects.get(name=peo_now.mother)
+            if People.objects.get(name=peo_now.father) not in check:
+                peo_obj_list.append(People.objects.get(name=peo_now.mother))
+                if peo_obj_list[-1] not in check:
+                    couple_obj = re_familytree(peo_obj_list[-1], path)
+                    for obj in couple_obj:
+                        check.add(obj)
+        except:
+            pass
+        finally:
+            pass
+
+
+        peo_now = peo_obj_list[-1]
+        if peo_now not in check:
+            couple_obj = re_familytree(peo_now, path)
+            for obj in couple_obj:
+                check.add(obj)
+        del peo_obj_list[-1]
+
     shell = 'python ' + os.path.join(BASE_DIR, 'cv', 'codes', 'familytreemaker.py ')+path
     gra_path = path[:path.rfind('.')]
-    fp = open(gra_path, 'w+')
-    subprocess.run(shell, stdout=fp, shell=True)
+    fp = open(gra_path, 'w+', encoding="utf-8")
+    p = subprocess.run(shell, stdout=subprocess.PIPE, shell=True)
+    temp = p.stdout
+    temp = temp.decode('cp936')
+    fp.write(temp)
     fp.close()
-    os.remove(path)
+    # os.remove(path)
     shell = "dot -Tpng " + gra_path+" -O"
     subprocess.run(shell,  shell=True)
-    os.remove(gra_path)
+    # os.remove(gra_path)
     context={}
     context["name"] = name
     context["path"] = "temp_image/"+os.path.basename(gra_path)+".png"
@@ -247,12 +340,13 @@ def familytree(request, name):
 
 
 def re_familytree(people_obj, path):
+    # print(people_obj)
     fp = open(path, 'a', encoding="utf-8")
     couple_obj = []
     # 为配偶写txt
     try:
         mate = People.objects.get(name=people_obj.mate)
-        fp.write(mate.name + "(id=%d)" % mate.custom_id + "\n")
+        fp.write(mate.name + "(id=%d)" % mate.id + "\n")
         couple_obj.append(mate)
     except:
         mate = people_obj.mate
@@ -263,7 +357,7 @@ def re_familytree(people_obj, path):
 
     # 为自己写txt
     name = people_obj.name
-    fp.write(name+"(id=%d)" % people_obj.custom_id+"\n")
+    fp.write(name + "(id=%d)" % people_obj.id+"\n")
     couple_obj.append(people_obj)
     # 为后代写txt
     kids_list = people_obj.kids
@@ -271,9 +365,37 @@ def re_familytree(people_obj, path):
         for kid in kids_list:
             try:
                 People.objects.get(name=kid)
-                fp.write("\t"+kid+"(id=%d)" % People.objects.get(name=kid).custom_id+"\n")
+                fp.write("\t"+kid+"(id=%d)" % People.objects.get(name=kid).id+"\n")
             except:
                 fp.write("\t" + kid + "\n")
     fp.write("\n")
     fp.close()
     return couple_obj
+
+
+def pic_info(request, path):
+    context={}
+    context["path"] = path
+    image_obj = image_db.objects.get(path=path)
+    face_obj = FaceImage.objects.filter(image=image_obj)
+    context['namelist'] = []
+    context['token_time'] = str(image_obj.token_time).replace('年', '-').replace('月', '-').replace('日', '-').replace(' ', 'T')
+    context['info'] = image_obj.info
+    context['title'] = image_obj.title
+    for face in face_obj:
+        name = face.name.name
+        num = face.path[face.path.find('-')+1:face.path.rfind('.')]
+        context['namelist'].append([num, name])
+    return render(request, "pic_info.html", context)
+
+
+def pic_info_edit(request, path):
+    image_obj = image_db.objects.get(path=path)
+    image_obj.info = request.POST["info"]
+    image_obj.title = request.POST["title"]
+    if request.POST['token_time']:
+        image_obj.token_time = request.POST["token_time"]
+    else:
+        image_obj.token_time = None
+    image_obj.save()
+    return HttpResponse(path+"已修改"+r'<br><a href="/pic_info/%s">返回</a>' % path)

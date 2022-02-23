@@ -6,6 +6,7 @@ import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
 from ..settings import BASE_DIR
 from dbmodel.models import FaceImage, People
+from dbmodel.models import Image as image_db
 info_dict = {}
 
 
@@ -89,6 +90,8 @@ def face_matching_show(image, results, names, tolerance=1):
 def dict_add(path, name):
     face = face_recognition.load_image_file(path)
     name_path = os.path.split(path)[-1]
+    img_path = name_path[:name_path.find("-")]+name_path[name_path.rfind("."):]
+    image_obj = image_db.objects.filter(path=img_path)[0]
     try:
         info = face_recognition.face_encodings(face, num_jitters=100)[0]
         save_path = os.path.join(BASE_DIR, 'cv', 'model', name+"@"+name_path[:name_path.rfind('.')]+'.npy')
@@ -110,7 +113,7 @@ def dict_add(path, name):
         else:
             people = People(name=name)
             people.save()
-        obj = FaceImage(name=people, path=path, upload_time=uploadtime)
+        obj = FaceImage(name=people, path=path, upload_time=uploadtime, image=image_obj)
         obj.save()
     except IndexError:
         print("人脸过于模糊，请提供清晰的正面照")

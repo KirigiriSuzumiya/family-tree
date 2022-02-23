@@ -170,7 +170,7 @@ class Family:
 		# First, search in ids
 		if name in self.everybody:
 			return self.everybody[name]
-		# Ancestor not found in 'id', maybe it's in the 'name' field?
+		# not found in 'id', maybe it's in the 'name' field?
 		for p in self.everybody.values():
 			if p.name == name:
 				return p
@@ -324,7 +324,7 @@ class Family:
 		gen = [ancestor]
 
 		print('digraph {\n' + \
-		      '\tnode [shape=box];\n' + \
+		      '\tnode [shape=box, fontname=KaiTi];\n' + \
 		      '\tedge [dir=none];\n')
 
 		for p in self.everybody.values():
