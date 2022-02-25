@@ -122,7 +122,10 @@
 								  var zoomCtrl = new BMapGL.ZoomControl();  // 添加比例尺控件
 								  map.addControl(zoomCtrl);
 							  </script>
-					  <div class="main-btn"><a href="#5">补充地图标点信息>></a></div>
+						<h4 class="btn" onclick="map.openInfoWindow(infoWindow, point);">标点1&nbsp;{% if not loc1_x %}待补充{% endif %}</h4>
+						<h4 class="btn" onclick="map.openInfoWindow(infoWindow1, point1);">标点2&nbsp;{% if not loc2_x %}待补充{% endif %}</h4>
+						<h4 class="btn" onclick="map.openInfoWindow(infoWindow2, point2);">标点3&nbsp;{% if not loc3_x %}待补充{% endif %}</h4>
+					    <h4 class="main-btn"><a href="#5">补充地图标点信息>></a></h4>
 				</div>
 			</div>
 		</div>

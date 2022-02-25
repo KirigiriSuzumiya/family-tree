@@ -117,6 +117,8 @@ def dict_add(path, name):
         obj.save()
     except IndexError:
         print("人脸过于模糊，请提供清晰的正面照")
+        return 0
+    return 1
 
 
 def face_show(image):

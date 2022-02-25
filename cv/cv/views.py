@@ -1,4 +1,3 @@
-from click import style
 from django.http import HttpResponse
 from django.shortcuts import render
 import os
@@ -10,7 +9,6 @@ from dbmodel.models import FaceImage, People
 from dbmodel.models import Image as image_db
 import subprocess
 import re
-# -*- coding: CP936 -*-
 
 def always():
     context = {
@@ -67,7 +65,8 @@ def name_upload(request):
             i += 1
             if name == '':
                 continue
-            FaceRecognition.dict_add(path, name)
+            if FaceRecognition.dict_add(path, name) == 0:
+                return HttpResponse("人脸编码失败，请提供清晰的正面照" + r'<br><a href="/faceupload">返回</a>')
             namelist.append(name)
     context = {"namelist" : namelist}
     return render(request, "info.html",context)
@@ -127,6 +126,7 @@ def namelist(request):
 
 
 def facelist(request, name):
+    print("facelist")
     context = {}
     context['name'] = name
     context['facelist'] = []
@@ -163,7 +163,7 @@ def facelist(request, name):
         upload_time = face_obj.upload_time
         count = (count+1) % 4
         re_path = face_obj.image.path
-        context['facelist'].append([upload_time, path, count,re_path])
+        context['facelist'].append([upload_time, path, count, re_path])
 
     context["familytreepath"], family = familytree(request, name)["path"], familytree(request, name)["check"]
     for i in family:
@@ -231,21 +231,20 @@ def familytree(request, name):
     check = set()
     # bfs遍历
     while peo_obj_list:
-        # print(check)
+        print(peo_obj_list)
         peo_now = peo_obj_list[0]
         # 将孩子加入队列
         kids_list = peo_now.kids
-        if not kids_list:
-            continue
-        for kid in kids_list:
-            try:
-                People.objects.get(name=kid)
-                if People.objects.get(name=kid) not in check:
-                    peo_obj_list.append(People.objects.get(name=kid))
-            except:
-                pass
-            finally:
-                pass
+        if kids_list:
+            for kid in kids_list:
+                try:
+                    People.objects.get(name=kid)
+                    if People.objects.get(name=kid) not in check:
+                        peo_obj_list.append(People.objects.get(name=kid))
+                except:
+                    pass
+                finally:
+                    pass
 
         # 将配偶加进队列
         try:
@@ -313,12 +312,15 @@ def familytree(request, name):
             pass
 
 
-        peo_now = peo_obj_list[-1]
+        peo_now = peo_obj_list[0]
+        print(peo_obj_list)
+        del peo_obj_list[0]
+        print(peo_obj_list,"\n")
         if peo_now not in check:
             couple_obj = re_familytree(peo_now, path)
             for obj in couple_obj:
                 check.add(obj)
-        del peo_obj_list[-1]
+
 
     shell = 'python ' + os.path.join(BASE_DIR, 'cv', 'codes', 'familytreemaker.py ')+path
     gra_path = path[:path.rfind('.')]
@@ -326,12 +328,13 @@ def familytree(request, name):
     p = subprocess.run(shell, stdout=subprocess.PIPE, shell=True)
     temp = p.stdout
     temp = temp.decode('cp936')
+
     fp.write(temp)
     fp.close()
-    # os.remove(path)
+    os.remove(path)
     shell = "dot -Tpng " + gra_path+" -O"
     subprocess.run(shell,  shell=True)
-    # os.remove(gra_path)
+    os.remove(gra_path)
     context={}
     context["name"] = name
     context["path"] = "temp_image/"+os.path.basename(gra_path)+".png"
