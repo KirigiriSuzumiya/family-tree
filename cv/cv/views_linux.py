@@ -11,12 +11,13 @@ from django.contrib import auth
 from django.contrib.auth.models import User
 import subprocess
 import re
+# -*- coding: CP936 -*-
 
 def always():
     context = {
                "info": FaceRecognition.initialing(),
                "time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-               "call": "请不要上传奇奇怪怪的东西！人在做，我在看，硬盘在存!",
+               "call": "请不要上传奇奇怪怪的东西！人在做，我在看，硬盘在存!"
                }
     return context
 
@@ -39,10 +40,10 @@ def pic_upload(request):
         for line in submit_pic:
             f.write(line)
     img_path = os.path.join(BASE_DIR, "upload", pic_path)
-    try:
-        face_num = FaceExtractor.extractor(img_path)
-    except:
-        return HttpResponse("您上传的文件不是合法的图片文件"+r'<br><a href="/faceupload">返回</a>')
+    # try:
+    face_num = FaceExtractor.extractor(img_path)
+    # except:
+    #     return HttpResponse("您上传的文件不是合法的图片文件"+r'<br><a href="/faceupload">返回</a>')
 
     context = {}
     context["upload_states"] = "上传成功！共找到%d个人脸" % face_num
@@ -67,7 +68,7 @@ def name_upload(request):
             i += 1
             if name == '':
                 continue
-            if FaceRecognition.dict_add(path, name) == 0:
+            if FaceRecognition.dict_add(path, name) ==0:
                 return HttpResponse("人脸编码失败，请提供清晰的正面照" + r'<br><a href="/faceupload">返回</a>')
             namelist.append(name)
     context = {"namelist" : namelist}
@@ -128,7 +129,6 @@ def namelist(request):
 
 
 def facelist(request, name):
-    print("facelist")
     context = {}
     context['name'] = name
     context['facelist'] = []
@@ -165,7 +165,7 @@ def facelist(request, name):
         upload_time = face_obj.upload_time
         count = (count+1) % 4
         re_path = face_obj.image.path
-        context['facelist'].append([upload_time, path, count, re_path])
+        context['facelist'].append([upload_time, path, count,re_path])
 
     context["familytreepath"], family = familytree(request, name)["path"], familytree(request, name)["check"]
     for i in family:
@@ -233,20 +233,20 @@ def familytree(request, name):
     check = set()
     # bfs遍历
     while peo_obj_list:
-        print(peo_obj_list)
+        # print(check)
         peo_now = peo_obj_list[0]
         # 将孩子加入队列
         kids_list = peo_now.kids
         if kids_list:
-            for kid in kids_list:
-                try:
-                    People.objects.get(name=kid)
-                    if People.objects.get(name=kid) not in check:
-                        peo_obj_list.append(People.objects.get(name=kid))
-                except:
-                    pass
-                finally:
-                    pass
+          for kid in kids_list:
+              try:
+                  People.objects.get(name=kid)
+                  if People.objects.get(name=kid) not in check:
+                      peo_obj_list.append(People.objects.get(name=kid))
+              except:
+                  pass
+              finally:
+                  pass
 
         # 将配偶加进队列
         try:
@@ -314,22 +314,19 @@ def familytree(request, name):
             pass
 
 
-        peo_now = peo_obj_list[0]
-        print(peo_obj_list)
-        del peo_obj_list[0]
-        print(peo_obj_list,"\n")
+        peo_now = peo_obj_list[-1]
         if peo_now not in check:
             couple_obj = re_familytree(peo_now, path)
             for obj in couple_obj:
                 check.add(obj)
-
+        del peo_obj_list[-1]
 
     shell = 'python ' + os.path.join(BASE_DIR, 'cv', 'codes', 'familytreemaker.py ')+path
     gra_path = path[:path.rfind('.')]
     fp = open(gra_path, 'w+', encoding="utf-8")
     p = subprocess.run(shell, stdout=subprocess.PIPE, shell=True)
     temp = p.stdout
-    temp = temp.decode('cp936')
+    temp = temp.decode()
 
     fp.write(temp)
     fp.close()
@@ -404,6 +401,8 @@ def pic_info_edit(request, path):
         image_obj.token_time = None
     image_obj.save()
     return HttpResponse(path+"已修改"+r'<br><a href="/pic_info/%s">返回</a>' % path)
+
+
 
 def user_view(request):
     try:

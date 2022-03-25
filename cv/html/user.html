@@ -16,6 +16,28 @@
 	<link rel="stylesheet" href="/static/css/nivo-lightbox.css">
 	<link rel="stylesheet" href="/static/css/nivo_themes/default/default.css">
 	<link rel="stylesheet" href="/static/css/templatemo-style.css">
+	<style>
+    .weicot_radio{
+        float:left;
+        margin-top:0.5em;
+        margin-right:0.5em;
+    }
+    .weicot_radio input[type="radio"]{
+        display:none;
+    }
+    .weicot_radio input[type="radio"] + label{
+        padding:0.2em 1em;
+        border:1px solid #CCCCCC;
+      /*  border-radius:0.5em;*/
+        color:#999;
+    }
+    .weicot_radio input[type="radio"]:checked + label {
+        padding: 0.2em 1em;
+        border: 1px solid #3399CC;
+       /* border-radius: 0.5em;*/
+        background: #3399CC;
+        color: #FFFFFF;
+	</style>
 
 </head>
 <body>
@@ -56,24 +78,21 @@
 		<div class="row">
 			<div class="col-md-offset-2 col-md-8 col-sm-12">
 				<h2>用户登陆/注册</h2>
-				<h3 style="color:red" class="text-center">tips:{{info|default:"欢迎使用用户系统"}}</h3>
+
 			</div>
 			<div class="col-md-12 col-sm-12 mt30">
-				<form action="user_oper" method="post" role="form" enctype="multipart/form-data">
+				<form action="user_oper" method="post" role="form" enctype="multipart/form-data" >
 					{% csrf_token %}
+					<div class="col-md-12 col-sm-12 weicot_radio text-center">
+						<input class="form-control" style="display:none;" type="radio" name="operat" value="login" id="p_1" checked required><label for="p_1" >登录</label>
+						<input class="form-control" style="display:none;" type="radio" name="operat" value="register" id="p_2" required><label for="p_2" >注册</label>
+					</div>
 					<div class="col-md-offset-3  col-sm-offset-3 col-md-6 col-sm-6">
-						  <div class="col-md-12 col-sm-12">
-							  <label class="col-md-offset-2  col-sm-offset-2 col-md-4 col-sm-4">
-									<h3><input  type="radio" name="operat" value="login" required>登陆</h3>
-							  </label>
-							  <label class="col-md-offset-1  col-sm-offset-1 col-md-4 col-sm-4">
-									<h3><input  type="radio" name="operat" value="register" required>注册</h3>
-							</label>
-						  </div>
                         <label for="username">用户名</label>
 						<input name="username" type="text" class="form-control" id="username" required>
                         <label for="password">密码</label>
                         <input name="password" type="password" class="form-control" id="password" required>
+						<h3 style="color:red" class="text-center">tips:{{info|default:"欢迎使用用户系统"}}</h3>
 					</div>
                     <div class="mt30 col-md-offset-5  col-sm-offset-5 col-md-4 col-sm-4">
                     	<button type="submit" name="submit" class="btn btn-default">提交</button>
