@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
 	{% load static %}
-	<title>家·谱——人员录入—补充信息</title>
+	<title>用户登录</title>
     <meta name="keywords" content="">
 	<meta name="description" content="">
 	<meta charset="utf-8">
@@ -12,17 +12,14 @@
 
 	<!-- stylesheet css -->
 	<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+	<link rel="stylesheet" href="/static/css/font-awesome.min.css">
 	<link rel="stylesheet" href="/static/css/nivo-lightbox.css">
 	<link rel="stylesheet" href="/static/css/nivo_themes/default/default.css">
 	<link rel="stylesheet" href="/static/css/templatemo-style.css">
-	<link rel="stylesheet" href="/static/css/font-awesome.min.css">
-	<link href="/static/css/theme.css" rel="stylesheet">
-	<!-- google web font css -->
-<!--	<link href='http://fonts.useso.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>-->
 
 </head>
 <body>
-
+	
 <!-- navigation -->
 
 	<div class="container">
@@ -37,12 +34,12 @@
 		</div>
 		<div class="collapse navbar-collapse">
 			<ul class="nav navbar-nav navbar-right">
-				<li><a href="/index">主页</a></li>
+				<li><a href="/index" class="active">主页</a></li>
 				<li><a href="/about">关于我们</a></li>
 			</ul>
 		</div>
 	</div>
-</div>
+</div>		
 
 <!-- contact header section -->
 <div id="contact-header">
@@ -58,34 +55,41 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-md-offset-2 col-md-8 col-sm-12">
-				<h2><i class="fa fa-user"></i>人员录入</h2>
-				<h3 class="col-md-4 col-sm-4" style="color:grey;"><i class="fa fa-check" ></i>上传相片</h3>
-				<h3 class="col-md-4 col-sm-4" style="color:grey;"><i class="fa fa-check"></i>录入姓名</h3>
-				<h3 class="col-md-4 col-sm-4" ><i class="fa fa-spinner"></i>补充信息</h3>
+				<h2>用户登陆/注册</h2>
+				<h3 style="color:red" class="text-center">tips:{{info|default:"欢迎使用用户系统"}}</h3>
 			</div>
-			<div class="col-md-10 col-md-offset-1 col-sm-12 mt30">
-                <h4>补充信息:</h4>
-
-				<table class="table">
-				  <tbody>
-				  {% for name in namelist %}
-					<tr>
-					  <td><h4>{{name}}</h4></td>
-					  <td><h4><a href="/facelist/{{name}}">详情>></a></h4></td>
-					</tr>
-				  {% endfor %}
-				  </tbody>
-				</table>
+			<div class="col-md-12 col-sm-12 mt30">
+				<form action="user_oper" method="post" role="form" enctype="multipart/form-data">
+					{% csrf_token %}
+					<div class="col-md-offset-3  col-sm-offset-3 col-md-6 col-sm-6">
+						  <div class="col-md-12 col-sm-12">
+							  <label class="col-md-offset-2  col-sm-offset-2 col-md-4 col-sm-4">
+									<h3><input  type="radio" name="operat" value="login" required>登陆</h3>
+							  </label>
+							  <label class="col-md-offset-1  col-sm-offset-1 col-md-4 col-sm-4">
+									<h3><input  type="radio" name="operat" value="register" required>注册</h3>
+							</label>
+						  </div>
+                        <label for="username">用户名</label>
+						<input name="username" type="text" class="form-control" id="username" required>
+                        <label for="password">密码</label>
+                        <input name="password" type="password" class="form-control" id="password" required>
+					</div>
+                    <div class="mt30 col-md-offset-5  col-sm-offset-5 col-md-4 col-sm-4">
+                    	<button type="submit" name="submit" class="btn btn-default">提交</button>
+						<button type="reset" name="submit" class="btn btn-default">重置</button>
+                    </div>
+				</form>
 			</div>
 		</div>
 	</div>
-</div>
+</div>		
 
 <!-- footer section -->
 <footer>
 	<div class="container">
 		<div class="row">
-
+        
 			<div class="col-md-5 col-sm-4">
 				<img src="/static/images/logo.png" class="img-responsive" alt="logo">
 				<p>家·谱——智能家谱录入查询是一款基于人脸识别与图像标签的在线家谱查询录入系统，提供人脸录入、识别到家谱构建的一站式服务
@@ -129,10 +133,11 @@
 </div>
 
 
-<!-- javascript js -->
-	<script src="/static/js/jquery.js"></script>
-	<script src="/static/js/bootstrap.min.js"></script>
-	<script src="/static/js/nivo-lightbox.min.js"></script>
-	<script src="/static/js/custom.js"></script>
+<!-- javascript js -->	
+<script src="/static/js/jquery.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+<script src="/static/js/nivo-lightbox.min.js"></script>
+<script src="/static/js/custom.js"></script>
+
 </body>
 </html>

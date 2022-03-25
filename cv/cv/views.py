@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse,HttpResponseRedirect
 from django.shortcuts import render
 import os
 import time
@@ -7,14 +7,16 @@ from .codes import FaceRecognition, FaceExtractor
 from .settings import BASE_DIR
 from dbmodel.models import FaceImage, People
 from dbmodel.models import Image as image_db
+from django.contrib import auth
+from django.contrib.auth.models import User
 import subprocess
 import re
 
-def always():
+def always(request):
     context = {
                "info": FaceRecognition.initialing(),
                "time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-               "call": "请不要上传奇奇怪怪的东西！人在做，我在看，硬盘在存!"
+               "call": "请不要上传奇奇怪怪的东西！人在做，我在看，硬盘在存!",
                }
     return context
 
@@ -24,7 +26,7 @@ def about(request):
 
 
 def face_upload(request):
-    context = always()
+    context = always(request)
     return render(request, 'faceupload.html', context)
 
 
@@ -73,7 +75,7 @@ def name_upload(request):
 
 
 def recognition(request):
-    context = always()
+    context = always(request)
     return render(request, 'recognition.html', context)
 
 
@@ -101,12 +103,12 @@ def recognition_upload(request):
 
 
 def index(request):
-    context = always()
+    context = always(request)
     return render(request, 'index.html', context)
 
 
 def namelist(request):
-    context = always()
+    context = always(request)
     context['namelist'] = []
     names = People.objects.all()
     count = 1
@@ -402,3 +404,31 @@ def pic_info_edit(request, path):
         image_obj.token_time = None
     image_obj.save()
     return HttpResponse(path+"已修改"+r'<br><a href="/pic_info/%s">返回</a>' % path)
+
+def user_view(request):
+    try:
+        context = {'info': request.GET['message']}
+    except:
+        context = {'info': "请先登录!"}
+    return render(request, "user.html", context)
+
+def user_oper(request):
+    username = request.POST['username']
+    password = request.POST['password']
+    operat = request.POST['operat']
+    if operat == "login":
+        user = auth.authenticate(request, username=username, password=password)
+        if user is not None:
+            auth.login(request, user)
+            # Redirect to a success page.
+            return HttpResponseRedirect('index')
+        else:
+            # Return an 'invalid login' error message.
+            return HttpResponseRedirect('user?message=用户名或密码错误！')
+    elif operat == "register":
+        user = User.objects.create_user(username=username, password=password)
+        return HttpResponseRedirect('user?message=注册成功，请登陆！')
+
+def logout_view(request):
+    auth.logout(request)
+    return HttpResponseRedirect('index')

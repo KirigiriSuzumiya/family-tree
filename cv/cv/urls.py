@@ -14,24 +14,28 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path,re_path
+from django.urls import path, re_path
+from django.contrib.auth.decorators import login_required
 from . import views
 urlpatterns = [
     path(r'', views.index),
     path(r'index', views.index),
-    path('about',views.about),
+    path('about', views.about),
     path(r'admin/', admin.site.urls),
-    path(r'faceupload', views.face_upload),
-    path(r'pic_upload', views.pic_upload),
-    path(r'name_upload', views.name_upload),
-    path(r'recognition', views.recognition),
-    path(r'recognition_upload', views.recognition_upload),
-    path(r'namelist', views.namelist),
-    re_path(r'facelist/(.*)$', views.facelist),
-    re_path(r'face_edit/(.*)$', views.face_edit),
-    re_path(r'edit_pic/(.*)$', views.edit_pic),
-    re_path(r'pic_info/(.*)$', views.pic_info),
-    re_path(r'pic_info_edit/(.*)$', views.pic_info_edit),
+    path(r'faceupload', login_required(views.face_upload)),
+    path(r'pic_upload', login_required(views.pic_upload)),
+    path(r'name_upload', login_required(views.name_upload)),
+    path(r'recognition', login_required(views.recognition)),
+    path(r'recognition_upload', login_required(views.recognition_upload)),
+    path(r'namelist', login_required(views.namelist)),
+    path(r'user', views.user_view),
+    path(r'user_oper', views.user_oper),
+    path(r'logout', views.logout_view),
+    re_path(r'facelist/(.*)$', login_required(views.facelist)),
+    re_path(r'face_edit/(.*)$', login_required(views.face_edit)),
+    re_path(r'edit_pic/(.*)$', login_required(views.edit_pic)),
+    re_path(r'pic_info/(.*)$', login_required(views.pic_info)),
+    re_path(r'pic_info_edit/(.*)$', login_required(views.pic_info_edit)),
 
 ]
 
