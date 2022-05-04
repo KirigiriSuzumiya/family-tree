@@ -19,6 +19,13 @@
 	<link href="/static/css/theme.css" rel="stylesheet">
 	<!-- google web font css -->
 <!--	<link href='http://fonts.useso.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>-->
+	{% if messages %}
+	<script>
+        {% for msg in messages %}
+            alert('{{ msg.message }}');
+        {% endfor %}
+    </script>
+	{% endif %}
 
 </head>
 <body>

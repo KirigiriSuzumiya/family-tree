@@ -18,6 +18,14 @@
 <!--	<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800" rel="stylesheet">-->
 
 	<script src="/static/facelist/js/vendor/modernizr-2.8.3-respond-1.4.2.min.js"></script>
+	{% if messages %}
+	<script>
+        {% for msg in messages %}
+            alert('{{ msg.message }}');
+        {% endfor %}
+    </script>
+{% endif %}
+
 </head>
 
 <body>
@@ -44,6 +52,7 @@
 		  <li><a href="#3"><i class="fa fa-users"></i> <em>家谱</em></a></li>
 		  <li><a href="#4"><i class="fa fa-image"></i> <em>图像</em></a></li>
 		  <li><a href="#5"><i class="fa fa-pencil"></i> <em>编辑</em></a></li>
+		  <li><a href="#5" onclick="window.open('/namelist','_self')"><i class="fa fa-mail-reply"></i> <em>返回</em></a></li>
 	  </ul>
 	</nav>
 	
@@ -156,7 +165,7 @@
 										<div class="right-content">
 											<h2 class="col-md-12 col-xs-12">家族成员</h2>
 											    {% for person in family %}
-													<span onclick="window.open('/facelist/{{person}}'); window.close();" class="main-btn"><a href="">{{person}}</a>
+													<span onclick="window.open('/facelist/{{person}}','_self');" class="main-btn"><a href="">{{person}}</a>
 													</span>
 												{% endfor %}
 
@@ -177,16 +186,17 @@
 					<div class="col-md-3 col-sm-6">
 						<div class="item">
 							<div class="thumb">
-								<a href="/pic_info/{{re_path}}" >
+
 									<div class="hover-effect">
 										<div class="hover-content">
 											<h2>{{name}}</h2>
 											<p>上传时间：</p>
 											<p>{{upload_time}}</p>
-											<p>点击以查看头像来源>></p>
+											<p><a href="/pic_info/{{re_path}}" >点此以查看头像来源>></a></p>
+                      <a href="/edit_pic/{{path}}">删除>></a>                                        
 										</div>
 									</div>
-								</a>
+
 								<div class="image">
 									<img src="{{path}}">
 								</div>
@@ -269,18 +279,12 @@
 				</div>
 			</div>
 		  </div>
-		</div>
 	</div>
 
 	<div class="footer">
 
-	  <div class="content">
+	  <div class="content row">
 
-		  <p>
-			  <div >
-				  <a href="/namelist" class="btn"><i class="fa fa-mail-reply"></i>返回列表</a>
-			  </div>
-		  </p>
 	  </div>
 	</div>
 

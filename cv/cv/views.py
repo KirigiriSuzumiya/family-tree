@@ -9,6 +9,7 @@ from dbmodel.models import FaceImage, People
 from dbmodel.models import Image as image_db
 from django.contrib import auth
 from django.contrib.auth.models import User
+from django.contrib import messages
 import subprocess
 import re
 
@@ -42,7 +43,8 @@ def pic_upload(request):
     try:
         face_num = FaceExtractor.extractor(img_path)
     except:
-        return HttpResponse("您上传的文件不是合法的图片文件"+r'<br><a href="/faceupload">返回</a>')
+        messages.error(request, '您上传的文件不是合法的图片文件')
+        return HttpResponseRedirect('/faceupload')
 
     context = {}
     context["upload_states"] = "上传成功！共找到%d个人脸" % face_num
@@ -68,7 +70,9 @@ def name_upload(request):
             if name == '':
                 continue
             if FaceRecognition.dict_add(path, name) == 0:
-                return HttpResponse("人脸编码失败，请提供清晰的正面照" + r'<br><a href="/faceupload">返回</a>')
+                messages.error(request, "人脸编码失败，请提供清晰的正面照")
+                return HttpResponseRedirect('/faceupload')
+
             namelist.append(name)
     context = {"namelist" : namelist}
     return render(request, "info.html",context)
@@ -92,10 +96,12 @@ def recognition_upload(request):
     try:
         return_dic = FaceRecognition.face_matchng(img_path, tolerance)
     except:
-        return HttpResponse("您上传的文件不是合法的图片文件" + r'<br><a href="/recognition">返回</a>')
+        messages.error(request, '您上传的文件不是合法的图片文件')
+        return HttpResponseRedirect('/recognition')
     context={}
     if return_dic == "no_face_error":
-        return HttpResponse("无法识别出人脸，请上传清晰的人脸图片" + r'<br><a href="/recognition">返回</a>')
+        messages.error(request, '无法识别出人脸，请上传清晰的人脸图片')
+        return HttpResponseRedirect('/recognition')
     context['path'] = return_dic['path']
     context['xls_path'] = return_dic['path'][:return_dic['path'].rfind('.')]+'.xls'
     context['result'] = return_dic['result']
@@ -128,7 +134,6 @@ def namelist(request):
 
 
 def facelist(request, name):
-    print("facelist")
     context = {}
     context['name'] = name
     context['facelist'] = []
@@ -210,7 +215,8 @@ def face_edit(request, re_name):
     people_obj.xing = request.POST['xing']
     people_obj.ming = request.POST['ming']
     people_obj.save()
-    return HttpResponse(re_name+"已修改"+r'<br><a href="/facelist/%s">返回</a>' % people_obj.name)
+    messages.error(request, re_name+"已修改")
+    return HttpResponseRedirect("/facelist/%s"% people_obj.name)
 
 
 def edit_pic(request, path):
@@ -221,7 +227,8 @@ def edit_pic(request, path):
     img_obj.delete()
     os.remove(os.path.join(npy_path, path[:path.rfind('.')]+'.npy'))
     os.remove(os.path.join(img_path, path))
-    return HttpResponse(path+"已删除"+r'<br><a href="/namelist">返回</a>')
+    messages.error(request, path+"已删除")
+    return HttpResponseRedirect("/namelist")
 
 
 def familytree(request, name):
@@ -403,7 +410,8 @@ def pic_info_edit(request, path):
     else:
         image_obj.token_time = None
     image_obj.save()
-    return HttpResponse(path+"已修改"+r'<br><a href="/pic_info/%s">返回</a>' % path)
+    messages.error(request, path+"已修改")
+    return HttpResponseRedirect("/pic_info/%s" % path)
 
 def user_view(request):
     try:
@@ -421,14 +429,21 @@ def user_oper(request):
         if user is not None:
             auth.login(request, user)
             # Redirect to a success page.
+            messages.error(request, "登陆成功！")
             return HttpResponseRedirect('index')
         else:
             # Return an 'invalid login' error message.
+            messages.error(request, "用户名或密码错误！")
             return HttpResponseRedirect('user?message=用户名或密码错误！')
     elif operat == "register":
-        user = User.objects.create_user(username=username, password=password)
+        try:
+            user = User.objects.create_user(username=username, password=password)
+        except:
+            messages.error(request, "用户名已存在！")
+            return HttpResponseRedirect('user?message=用户名已存在！')
         return HttpResponseRedirect('user?message=注册成功，请登陆！')
 
 def logout_view(request):
     auth.logout(request)
+    messages.error(request, "用户已登出！")
     return HttpResponseRedirect('index')

@@ -19,6 +19,14 @@
 <!--	<link href='http://fonts.useso.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>-->
 	<script src="//cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
 	<script src="//cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	{% if messages %}
+	<script>
+        {% for msg in messages %}
+            alert('{{ msg.message }}');
+        {% endfor %}
+    </script>
+	{% endif %}
+
 </head>
 <body>
 	
@@ -50,7 +58,7 @@
 			<div class="col-md-5 col-sm-3"></div>
 			<div class="col-md-7 col-sm-9">
 				<h3>家·谱</h3>
-				<h1>智能家谱录入与查询</h1>
+				<h2>智能家谱录入与查询</h2>
 			</div>
 		</div>
 	</div>
