@@ -77,15 +77,20 @@
 						<tr>
 						  	<th>人脸编号</th>
 						  	<th>识别结果</th>
+							<th>准确度</th>
 							<th>更多信息</th>
 						</tr>
 					</thead>
 				    <tbody>
-				    {% for name in result %}
+				    {% for faceresult in result %}
 						<tr>
 							<td><h4>{{forloop.counter0}}号人脸</h4></td>
+						</tr>
+							{% for name,score in faceresult %}
+						<tr>
+							<td><h4>&nbsp</h4></td>
 							<td><h4>{{name|default:"未知"}}</h4></td>
-
+							<td><h4>{{score}}%</h4></td>
 							<td>
 								<h4>
 								{% if name %}
@@ -94,6 +99,8 @@
 								</h4>
 							</td>
 						</tr>
+							{% endfor %}
+					<tr></tr>
 				    {% endfor %}
 				  	</tbody>
 				</table>

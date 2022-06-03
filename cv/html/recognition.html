@@ -18,15 +18,32 @@
 	<link rel="stylesheet" href="/static/css/fileinput.min.css">
 	<link rel="stylesheet" href="/static/css/font-awesome.min.css">
 	<link href="/static/css/theme.css" rel="stylesheet">
-	<!-- google web font css -->
-<!--	<link href='http://fonts.useso.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>-->
-	{% if messages %}
-	<script>
-        {% for msg in messages %}
-            alert('{{ msg.message }}');
-        {% endfor %}
+	<style>
+        .white_content {
+            display: none;
+            position: absolute;
+            top: 25%;
+            left: 25%;
+            width: 55%;
+            height: 55%;
+            padding: 20px;
+            border: 10px solid orange;
+            background-color: white;
+            z-index:1002;
+            overflow: auto;
+        }
+    </style>
+
+
+
+	<script type="text/javascript">
+        function openDialog(){
+            document.getElementById('light').style.display='block';
+        }
+        function closeDialog(){
+            document.getElementById('light').style.display='none';
+        }
     </script>
-	{% endif %}
 
 </head>
 <body>
@@ -83,7 +100,6 @@
 		</div>
 	</div>
 </div>
-
 <!-- footer section -->
 <footer>
 	<div class="container">

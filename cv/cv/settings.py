@@ -38,7 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'dbmodel.apps.DbmodelConfig',
-
+    "sslserver",
+    'werkzeug_debugger_runserver',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -129,3 +131,5 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = '/user'
+
+# SECURE_SSL_REDIRECT = True

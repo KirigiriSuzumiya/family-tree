@@ -172,6 +172,18 @@
 										</div>
 								</div>
 							</div>
+							<div class="container-fluid">
+								<div class="row">
+										<div class="right-content">
+											<h2 class="col-md-12 col-xs-12">可能认识的人</h2>
+											    {% for person in family %}
+													<span onclick="window.open('/facelist/{{person}}','_self');" class="main-btn"><a href="">{{person}}</a>
+													</span>
+												{% endfor %}
+
+										</div>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>

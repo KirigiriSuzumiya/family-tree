@@ -1,3 +1,6 @@
+import base64
+
+import requests
 from django.http import HttpResponse,HttpResponseRedirect
 from django.shortcuts import render
 import os
@@ -95,9 +98,9 @@ def recognition_upload(request):
             f.write(line)
     img_path = os.path.join(BASE_DIR, "upload", pic_path)
     try:
-        return_dic = FaceRecognition.face_matchng(img_path, tolerance)
+        return_dic = FaceRecognition.face_matchng(img_path, request, tolerance )
     except:
-        messages.error(request, '您上传的文件不是合法的图片文件')
+        messages.error(request, '您上传的文件不是合法的图片文件或者图片中没有可分辨的人脸！')
         return HttpResponseRedirect('/recognition')
     context={}
     if return_dic == "no_face_error":
@@ -221,12 +224,28 @@ def face_edit(request, re_name):
 
 
 def edit_pic(request, path):
-    npy_path = os.path.join(BASE_DIR, 'cv', 'model')
-    img_path = os.path.join(BASE_DIR, 'cv', 'model_image')
+    # client_id 为官网获取的AK， client_secret 为官网获取的SK
+    # 获取access_token
+    api_key = "jkyuzoYl4Cly99sEmxNMZog3"
+    secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
+    host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (api_key, secret_key)
+    response = requests.get(host)
+    if response:
+        access_token = response.json()["access_token"]
+    else:
+        exit(0)
+
+    # 设置请求包体
+    request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/face/delete"
+    request_url = request_url + "?access_token=" + access_token
+    headers = {'content-type': 'application/json'}
     path = os.path.basename(path)
-    img_obj = FaceImage.objects.filter(path=path)
+    img_obj = FaceImage.objects.filter(path=path)[0]
+    params = '{"log_id":%s,"group_id":"admin","user_id":"%d","face_token":"%s"}' % (img_obj.logid, img_obj.name.id, img_obj.token)
+    response = requests.post(request_url, data=params, headers=headers)
+    print(response)
+    img_path = os.path.join(BASE_DIR, 'cv', 'model_image')
     img_obj.delete()
-    os.remove(os.path.join(npy_path, path[:path.rfind('.')]+'.npy'))
     os.remove(os.path.join(img_path, path))
     messages.error(request, path+"已删除")
     return HttpResponseRedirect("/namelist")
@@ -445,3 +464,41 @@ def logout_view(request):
     auth.logout(request)
     messages.error(request, "用户已登出！")
     return HttpResponseRedirect('index')
+
+def demo(request):
+    return render(request, 'demo.html')
+
+
+def baidu_upload(request):
+    faces = FaceImage.objects.all()
+    api_key = "jkyuzoYl4Cly99sEmxNMZog3"
+    secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
+    host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (
+    api_key, secret_key)
+    response = requests.get(host)
+    if response:
+        access_token = response.json()["access_token"]
+    else:
+        exit(0)
+    for face in faces:
+        pic_path= face.path
+        request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/user/add"
+        request_url = request_url + "?access_token=" + access_token
+        headers = {'content-type': 'application/json'}
+        png = open(os.path.join(BASE_DIR, "cv", "model_image", face.path), 'rb')
+        res = png.read()
+        png.close()
+        image = base64.b64encode(res).decode("ascii")
+        params = '{"image":"%s","image_type":"BASE64","group_id":"admin","user_id":"%d"}' % (image, face.name.id)
+        headers = {'content-type': 'application/json'}
+        response = requests.post(request_url, data=params, headers=headers)
+        print(response.json())
+
+        time.sleep(1)
+        if response.json()["error_msg"] != "SUCCESS":
+            print(response.json()["error_msg"])
+        else:
+            face.token = response.json()["result"]["face_token"]
+            face.logid = response.json()["log_id"]
+            face.save()
+    return render(request, 'index.html')

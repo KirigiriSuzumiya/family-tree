@@ -49,7 +49,8 @@ class FaceImage(models.Model):
     upload_time = models.DateTimeField(default=timezone.now)
     name = models.ForeignKey(People, on_delete=models.CASCADE, null=True)
     image = models.ForeignKey(Image, on_delete=models.CASCADE)
-
+    token = models.CharField(max_length=1000, null=True, blank=True)
+    logid = models.CharField(max_length=1000, null=True, blank=True)
     def __str__(self):
         return self.path
 

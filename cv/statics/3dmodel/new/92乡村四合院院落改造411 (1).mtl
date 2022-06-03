@@ -1,0 +1,63 @@
+#
+## Alias OBJ Material File
+# Exported from SketchUp, (c) 2000-2012 Trimble Navigation Limited
+
+newmtl M_2011011615221320070827095955757935684_Big
+Ka 0.000000 0.000000 0.000000
+Kd 0.388235 0.419608 0.427451
+Ks 0.330000 0.330000 0.330000
+map_Kd 92乡村四合院院落改造411 (1)/M_2011011615221320070827095955757935684_Big.jpg
+
+newmtl Color_000
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.330000 0.330000 0.330000
+
+newmtl FrontColor
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.330000 0.330000 0.330000
+
+newmtl Blinds_Roman_Hobbled_Blue
+Ka 0.000000 0.000000 0.000000
+Kd 0.317647 0.321569 0.341176
+Ks 0.330000 0.330000 0.330000
+map_Kd 92乡村四合院院落改造411 (1)/Blinds_Roman_Hobbled_Blue.jpg
+
+newmtl Stone_Pavers_Flagstone_Gray
+Ka 0.000000 0.000000 0.000000
+Kd 0.635294 0.635294 0.635294
+Ks 0.330000 0.330000 0.330000
+map_Kd 92乡村四合院院落改造411 (1)/Stone_Pavers_Flagstone_Gray.jpg
+
+newmtl _10
+Ka 0.000000 0.000000 0.000000
+Kd 0.564706 0.380392 0.207843
+Ks 0.330000 0.330000 0.330000
+map_Kd 92乡村四合院院落改造411 (1)/_10.jpg
+
+newmtl Stone_Vein_Gray
+Ka 0.000000 0.000000 0.000000
+Kd 0.650980 0.647059 0.647059
+Ks 0.330000 0.330000 0.330000
+map_Kd 92乡村四合院院落改造411 (1)/Stone_Vein_Gray.jpg
+
+newmtl Wood_Cherry_Original
+Ka 0.000000 0.000000 0.000000
+Kd 0.568627 0.380392 0.188235
+Ks 0.330000 0.330000 0.330000
+map_Kd 92乡村四合院院落改造411 (1)/Wood_Cherry_Original.jpg
+
+newmtl ______24
+Ka 0.000000 0.000000 0.000000
+Kd 0.541176 0.568627 0.537255
+Ks 0.330000 0.330000 0.330000
+map_Kd 92乡村四合院院落改造411 (1)/______24.jpg
+
+newmtl Translucent_Glass_Sky_Reflection
+Ka 0.000000 0.000000 0.000000
+Kd 0.486275 0.541176 0.709804
+Ks 0.330000 0.330000 0.330000
+d 0.520000
+map_Kd 92乡村四合院院落改造411 (1)/Translucent_Glass_Sky_Reflection.jpg
+

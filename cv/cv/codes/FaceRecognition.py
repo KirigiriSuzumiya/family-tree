@@ -1,16 +1,23 @@
+import base64
 import time
+from io import BytesIO
+
 import face_recognition
 import numpy as np
 import os
 import pandas as pd
+import requests
 from PIL import Image, ImageDraw, ImageFont
 from ..settings import BASE_DIR
+from django.shortcuts import render
 from dbmodel.models import FaceImage, People
 from dbmodel.models import Image as image_db
+from django.contrib import messages
 info_dict = {}
 
 
 def initialing():
+    return
     # 载入已保存的模型
     global info_dict
     info_dict = {}
@@ -27,82 +34,99 @@ def initialing():
         return_str += i + ','
     return return_str
 
-def face_matchng(path,tolerance=1):
-    initialing()
-    img = face_recognition.load_image_file(path)
-    results = []
-    names = []
-    info = face_recognition.face_encodings(img)
-    global info_dict
-    for key, value in info_dict.items():
-        result = face_recognition.face_distance(info, value)
-        results.append(list(result))
-        names.append(key)
-    return face_matching_show(img, results, names, tolerance)
+def face_matchng(path,request,tolerance=1):
+    img_path = path
+    # client_id 为官网获取的AK， client_secret 为官网获取的SK
+    # 获取access_token
+    api_key = "jkyuzoYl4Cly99sEmxNMZog3"
+    secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
+    host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (
+    api_key, secret_key)
+    response = requests.get(host)
+    if response:
+        access_token = response.json()["access_token"]
+    else:
+        exit(0)
 
+    # 设置请求包体
+    request_url = "https://aip.baidubce.com/rest/2.0/face/v3/multi-search"
+    request_url = request_url + "?access_token=" + access_token
+    headers = {'content-type': 'application/json'}
+    result = []
+    img = face_recognition.load_image_file(img_path)
+    origin = Image.open(img_path)
+    locations = face_recognition.face_locations(img)
 
-def face_matching_show(image, results, names, tolerance=1):
-    # 数据清洗与整理
-    return_dic = {}
+    # 分割人脸并一一调用百度api
+    for i in range(len(locations)):
+        result.append([])
+        box = (locations[i][3], locations[i][0], locations[i][1], locations[i][2])
+        face = origin.crop(box)
+        output_buffer = BytesIO()
+        pic_save_path = str(time.time()) + img_path[img_path.rfind("."):]
+        pic_save_path = os.path.join(BASE_DIR, "statics", "temp_image", pic_save_path)
+        print(pic_save_path)
+        face.save(pic_save_path)
+        png = open(pic_save_path, 'rb')
+        res = png.read()
+        png.close()
+        image = base64.b64encode(res).decode("ascii")
+        params = '{"image":"%s","image_type":"BASE64","group_id_list":"admin","max_user_num":5,"match_threshold":%d}' % (image,int(tolerance*100))
+        response = requests.post(request_url, data=params, headers=headers)
+        print(response.json())
+        if response.json()["error_msg"] == "SUCCESS":
+            res_info = response.json()["result"]["face_list"][0]["user_list"]
+            for j in range(len(res_info)):
+                result[i].append({"id": res_info[j]["user_id"], "score": res_info[j]["score"]})
+        else:
+            result[i].append(response.json()["error_msg"])
+        time.sleep(0.5)
+
+    # 结果格式化与可视化
     recognition_result = []
     time_now = time.time()
-    df = pd.DataFrame(results)
-    min_face_dis = []
-    min_dict_dis = []
-    try:
-        for i in range(len(names)):
-            min_dict_dis.append(min(df.loc[i, :]))
-        for i in range(df.size//len(names)):
-            min_face_dis.append(min(df.loc[:, i]))
-    except:
-        return "no_face_error"
-    df_show = df.copy(deep=True)
-    df_show["name"] = names
-    df_show.set_index("name", inplace=True)
-    df_show["min"] = min_dict_dis
-    df_show.to_excel(os.path.join(BASE_DIR, 'statics', 'temp_image', '%f.xls' % time_now))
-    # 图像画布初始化
-    pil_image = Image.fromarray(image)
+    df = pd.DataFrame(result)
+    df.to_excel(os.path.join(BASE_DIR, 'statics', 'temp_image', '%f.xls' % time_now))
+    pil_image = Image.open(img_path)
     draw = ImageDraw.Draw(pil_image)
-    font_size = pil_image.size[0]//50
+    font_size = pil_image.size[0] // 50
     ft = ImageFont.truetype(os.path.join(BASE_DIR, 'cv', 'files', 'arialuni.ttf'), font_size)
-    # draw.text((0, 0), "已加载人脸:\n"+"\n".join(names), "red", ft)
-    # 图像人脸绘图
-    face_list = face_recognition.face_locations(image)
-    for i in range(len(face_list)):
-        box = (face_list[i][3], face_list[i][0], face_list[i][1], face_list[i][2])
-        draw.rectangle(box, None, 'yellow', width=font_size//8)
+    for i in range(len(locations)):
+        box = (locations[i][3], locations[i][0], locations[i][1], locations[i][2])
+        draw.rectangle(box, None, 'yellow', width=font_size // 8)
         draw.text((box[0:2]), str(i), "red", ft)
-        recognition_result.append(None)
-        for j in range(len(names)):
-            if df.loc[j, i] == min_face_dis[i] and df.loc[j, i] == min_dict_dis[j] and df.loc[j, i] <= tolerance:
-                name = FaceImage.objects.filter(path__startswith=names[j])[0].name.name
-                draw.text((box[0], box[1]-font_size), name, "red", ft)
-                recognition_result[i] = name
-
-
+        recognition_result.append([])
+        for j in range(len(result[i])):
+            if result[i][j] == "match user is not found":
+                name = "未知人脸"
+                recognition_result[i].append([name, -1])
+            elif type(result[i][j]) == str:
+                name = "人脸解析出错"
+                recognition_result[i].append([name, -1])
+            elif type(result[i][j]) == dict:
+                name = People.objects.filter(id=result[i][j]["id"])[0].name
+                recognition_result[i].append([name, result[i][j]["score"]])
+        if recognition_result[i][0][0] == "未知人脸" or recognition_result[i][0][0] == "人脸解析出错":
+            continue
+        draw.text((box[0], box[1] - font_size), str(recognition_result[i][0][0]), "red", ft)
     img_path = os.path.join('temp_image', '%f.jpg' % time_now)
     pil_image.save(os.path.join(BASE_DIR, 'statics', img_path))
-    return_dic['path'] = img_path
-    return_dic['result'] = recognition_result
+    return_dic = {'path': img_path, 'result': recognition_result}
     return return_dic
 
+
 def dict_add(path, name):
-    face = face_recognition.load_image_file(path)
     name_path = os.path.split(path)[-1]
     img_path = name_path[:name_path.find("-")]+name_path[name_path.rfind("."):]
     image_obj = image_db.objects.filter(path=img_path)[0]
+
     try:
-        info = face_recognition.face_encodings(face, num_jitters=100)[0]
-        save_path = os.path.join(BASE_DIR, 'cv', 'model', name+"@"+name_path[:name_path.rfind('.')]+'.npy')
-        np.save(save_path, info)
         pic_save_path = os.path.join(BASE_DIR, 'cv', 'model_image', name+'@'+name_path)
         fpw = open(pic_save_path, "wb")
         fpr = open(path, "rb")
         for line in fpr:
             fpw.write(line)
-        print(name+'.npy'+" saved")
-        #face_show(face)
+        fpw.close()
         path = os.path.basename(pic_save_path)
         name = path[:path.find('@')]
         uploadtime = pic_save_path[pic_save_path.find('@') + 1:pic_save_path.rfind('-')]
@@ -115,6 +139,32 @@ def dict_add(path, name):
             people.save()
         obj = FaceImage(name=people, path=path, upload_time=uploadtime, image=image_obj)
         obj.save()
+        # 百度api上传
+        # client_id 为官网获取的AK， client_secret 为官网获取的SK
+        api_key = "jkyuzoYl4Cly99sEmxNMZog3"
+        secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
+        host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (api_key, secret_key)
+        response = requests.get(host)
+        if response:
+            access_token = response.json()["access_token"]
+        else:
+            exit(0)
+        request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/user/add"
+        request_url = request_url + "?access_token=" + access_token
+        headers = {'content-type': 'application/json'}
+        png = open(pic_save_path, 'rb')
+        res = png.read()
+        png.close()
+        image = base64.b64encode(res).decode("ascii")
+        params = '{"image":"%s","image_type":"BASE64","group_id":"admin","user_id":"%d"}' % (image, people.id)
+        headers = {'content-type': 'application/json'}
+        response = requests.post(request_url, data=params, headers=headers)
+        if response.json()["error_msg"] !="SUCCESS":
+            return 0
+        else:
+            obj.token = response.json()["result"]["face_token"]
+            obj.logid = response.json()["log_id"]
+            obj.save()
     except IndexError:
         print("人脸过于模糊，请提供清晰的正面照")
         return 0

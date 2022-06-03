@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Document</title>
+<style type="text/css">
+html, body, #content_box{margin: 0;padding: 0;width: 100%;height: 100%;}
+#content_box{top: 0;bottom: 0;right: 0;left: 0;z-index: 4;}
+</style>
+</head>
+<body>
+<div id="content_box"></div>
+</body>
+<script type="text/javascript" src="https://cdn.bootcdn.net/ajax/libs/jquery/3.3.1/jquery.js"></script>
+<script type="text/javascript" src="https://cdn.bootcdn.net/ajax/libs/three.js/r128/three.min.js"></script>
+<script type="text/javascript" src="https://www.wjceo.com/lib/js/loaders/MTLLoader.js"></script>
+<script type="text/javascript" src="https://www.wjceo.com/lib/js/loaders/OBJLoader.js"></script>
+<script type="text/javascript" src="https://raw.githubusercontent.com/fibo/three-orbitcontrols/master/OrbitControls.js"></script>
+<script type="text/javascript">
+var container = document.getElementById("content_box"); // 需要插⼊ canvas 的标签
+var width = container.offsetWidth;
+var height = container.offsetHeight;
+var scene = new THREE.Scene(); // 创建场景
+var camera = new THREE.PerspectiveCamera(45, width / height, 1, 1700); // 创建相机
+// 设置相机位置
+camera.position.x = 100;
+camera.position.y = 160;
+camera.position.z = 330;
+var objLoader = new THREE.OBJLoader();
+var mtlLoader = new THREE.MTLLoader();
+loadMTL();
+loadOBJ();
+var renderer = new THREE.WebGLRenderer(); // 渲染
+renderer.shadowMap.enabled = true; // 开启阴影效果
+renderer.setClearColor('#F77C0D', 1); // 设置背景颜⾊
+renderer.setPixelRatio(window.devicePixelRatio); // 设置显⽰⽐例
+renderer.setSize(width, height); // 设置渲染⼤⼩
+container.appendChild(renderer.domElement);
+var controls = new THREE.OrbitControls(camera,renderer.domElement); // 创建控件对象
+controls.addEventListener('change', render); // 监听⿏标、键盘事件
+// 执⾏渲染操作，指定场景、相机作为参数
+function render() {
+console.log('render');
+renderer.render(scene, camera);
+}
+// 加载MTL⽂件
+function loadMTL() {
+mtlLoader.load('./building.mtl', function (materials) {
+// OBJ模型会和MaterialCreator包含的材质相对应
+materials.preload();
+objLoader.setMaterials(materials);
+var materialsDetail = materials.materials;
+for (var item in materialsDetail) {
+materialsDetail[item].opacity = 1
+}
+loadOBJ(materials);
+}, function () {
+console.log('import MTL success!');
+}, function (err) {
+console.log('MTL error!', err);
+});
+}
+// 加载OBJ⽂件
+function loadOBJ() {
+// 如果没有材质⽂件，系统⾃动设置Phong⽹格材质
+objLoader.load('./building.obj', function (obj) {
+// 初始化模型坐标值
+obj.position.x = 0;
+obj.position.y = 0;
+obj.position.z = -40;
+// 设置模型缩放⽐例
+obj.scale.set(0.7, 0.7, 0.7);
+// 把模型添加到场景⾥⾯
+scene.add(obj);
+var ambient = new THREE.AmbientLight(0xffffff, 0.8);
+scene.add(ambient);
+var directional = new THREE.DirectionalLight(0xffffff, 0.8);
+directional.position.set(5, 10, 7);
+setTimeout(render, 400);
+}, function () {
+console.log('import OBJ success!');
+}, function (err) {
+console.log('OBJ error!', err);
+});
+}
+</script>
+</html

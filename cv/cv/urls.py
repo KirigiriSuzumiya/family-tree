@@ -36,7 +36,8 @@ urlpatterns = [
     re_path(r'edit_pic/(.*)$', login_required(views.edit_pic)),
     re_path(r'pic_info/(.*)$', login_required(views.pic_info)),
     re_path(r'pic_info_edit/(.*)$', login_required(views.pic_info_edit)),
-
+    path(r'demo', views.demo),
+    path(r'baidu', views.baidu_upload),
 ]
 
 
