@@ -18,36 +18,69 @@
 	<link rel="stylesheet" href="/static/css/fileinput.min.css">
 	<link rel="stylesheet" href="/static/css/font-awesome.min.css">
 	<link href="/static/css/theme.css" rel="stylesheet">
+
 	<style>
         .white_content {
             display: none;
-            position: absolute;
-            top: 25%;
-            left: 25%;
-            width: 55%;
-            height: 55%;
+            position:fixed;
+            top:15%;
+            left:30%;
+            width:40%;
             padding: 20px;
-            border: 10px solid orange;
-            background-color: white;
+            text-align:center;
+            border: 10px solid grey;
+            background-color: black;
             z-index:1002;
             overflow: auto;
+			opacity: 80%;
         }
+        .white_content h3,h4{
+        	color: #fff;
+        }
+
     </style>
 
-
-
+	{% if messages %}
+	<script>
+        {% for msg in messages %}
+            alert('{{ msg.message }}');
+        {% endfor %}
+    </script>
+	{% endif %}
 	<script type="text/javascript">
         function openDialog(){
             document.getElementById('light').style.display='block';
+            var csrf = $('input[name="csrfmiddlewaretoken"]').val();  //增加csrf变量将在data中传参以避免403错误
+        	// 朝后端发送ajax请求
+				$.ajax({
+				// 1.指定朝哪个后端发送ajax请求
+				url:'', //不写就是朝当前地址提交【与form表单的action参数相同】
+				// 2.请求方式
+				type:'post',  // 不指定默认就是get，都是小写
+				// 3.数据
+				data:{'csrfmiddlewaretoken': csrf},
+				// 4.回调函数:当后端给你返回结果的时候会自动触发，args接受后端的返回结果
+				success:function (args) {
+					document.getElementById('info').innerHTML=args;
+				}
+				})
         }
         function closeDialog(){
             document.getElementById('light').style.display='none';
         }
+        openDialog();
     </script>
 
 </head>
 <body>
-
+<div id="light" class="white_content">
+	<button type="button" class="close" aria-hidden="true" style="color:white;" onclick="closeDialog()">
+    &times;
+  	</button>
+	<h3>处理中</h3>
+	<h4 id="info">图像识别中，请耐心等待…………</h4>
+	<img class="img-responsive center-block" src="/static/images/loading.gif" alt="loading">
+</div>
 <!-- navigation -->
 
 	<div class="container">
@@ -89,7 +122,7 @@
 			</div>
 			<div class="col-md-10 col-md-offset-1 col-sm-12 mt30">
 
-				<form name="pic_upload_form" method="POST" action="recognition_upload" enctype="multipart/form-data">
+				<form name="pic_upload_form" method="POST" action="recognition_upload" enctype="multipart/form-data" onsubmit="setInterval(function(){openDialog()},1000);">
 					{% csrf_token %}
 					<h4>严谨度：（推荐默认值，越小越严格1~10）</h4>
 					<input type="number" name="tolerance" class="form-control" min="1" max="10" value="7" required="required">

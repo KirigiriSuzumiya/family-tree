@@ -1,8 +1,8 @@
 
 body
 	{
-		background: #101010;
-    color: #808080;
+		background: #f0f4e5;
+    color: #273a17;
 		font-family: 'Montserrat', sans-serif;
     font-weight: 400;
 	}
@@ -33,7 +33,7 @@ body
 
 /* heading section */
 h1,h2,h3,h4 {
-  color: #fff;
+  color: #273a17;
   font-weight: bold;
 }
 
@@ -52,10 +52,10 @@ img {
 /* button section */
 .btn {
   background: transparent;
-  border: 2px solid #fff;
+  border: 2px solid #273a17;
   border-radius: 0px;
   box-shadow: none;
-  color: #fff;
+  color: #273a17;
   padding: 12px 18px;
   font-size: 13px;
   font-weight: bold;
@@ -74,13 +74,14 @@ img {
 /* navigation */
 
 .navbar-default {
-    background: #202020;
+    background: #babfa9;
     border: none;
-    border-left: 6px solid #d54ab6;
+    border-left: 6px solid #b6876e;
     padding-right: 40px;
     margin: 0 !important;
     position: relative;
     top: 20px;
+    opacity: 80%;
   }
 .navbar-default .navbar-brand {
     font-size: 40px;
@@ -121,7 +122,7 @@ img {
 }
 
 .active {
-	background: #333;
+	background: #dcddc6;
 }
 
 /* home section */
@@ -135,10 +136,13 @@ img {
 }
 #home h1,
 #home h3 {
+  color: #fff;
   line-height: 30px;
   font-size: 40px;
 }
-
+#home h2 {
+  color: #fff;
+}
 /* divider section */
 .divider {
   color: #fff;
@@ -154,6 +158,7 @@ img {
   text-transform: capitalize;
 }
 .divider h2 {
+  color: #fff;
   padding-bottom: 4px;
 }
 .divider .divider-wrapper {
@@ -167,13 +172,16 @@ img {
   cursor: pointer;
 }
 .divider .divider-one {
-  background: #c14000;
+  background: #acb265;
+  opacity: 80%;
 }
 .divider .divider-two {
-  background: #009988;
+  background: #9eaf9d;
+  opacity: 80%;
 }
 .divider .divider-three {
-  background: #ffa500;
+  background: #b6876e;
+  opacity: 80%;
 }
 
 /* about section */
@@ -188,7 +196,7 @@ img {
   padding-top: 60px;
 }
 #about .container {
-  background: #191919;
+  background: #babfa9;
 }
 #about .col-md-6 {
   padding: 0;
@@ -248,7 +256,9 @@ img {
   min-height: 500px;
   padding-top: 160px;
 }
+
 #portfolio {
+  
   text-align: center;
   padding-top: 80px;
   padding-bottom: 60px;
@@ -290,16 +300,16 @@ img {
   padding-bottom: 30px;
 }
 #contact .form-control {
-  background: #202020;
+  background: #babfa9;
   border: none;
   border-radius: 0px;
   box-shadow: none;
   margin-bottom: 0px;
   transition: all 0.4s ease-in;
-  color: #fff;
+  color: #273a17;
 }
 #contact .form-control:focus {
-  background: #404040;
+  background: #fff;
 }
 #contact input {
   height: 53px;
@@ -323,7 +333,7 @@ img {
 
 /* footer section */
 footer {
-  background: #1c1c1c;
+  background: #babfa9;
   padding-top: 60px;
   padding-bottom: 60px;
 }
@@ -356,7 +366,7 @@ footer .input-group-addon {
 }
 footer a, footer a:visited {
   font-size: 14px;
-  color: #999;
+  color: #273a17;
 }
 footer a:hover {
   color: #fff;

@@ -20,6 +20,27 @@
 	<link href="/static/css/theme.css" rel="stylesheet">
 	<!-- google web font css -->
 <!--	<link href='http://fonts.useso.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>-->
+	<style>
+        .white_content {
+            display: none;
+            position:fixed;
+            top:15%;
+            left:30%;
+            width:40%;
+            padding: 20px;
+            text-align:center;
+            border: 10px solid grey;
+            background-color: black;
+            z-index:1002;
+            overflow: auto;
+			opacity: 80%;
+        }
+        .white_content h3,h4{
+        	color: #fff;
+        }
+
+    </style>
+
 	{% if messages %}
 	<script>
         {% for msg in messages %}
@@ -27,10 +48,25 @@
         {% endfor %}
     </script>
 {% endif %}
-
+	<script type="text/javascript">
+        function openDialog(){
+            document.getElementById('light').style.display='block';
+        }
+        function closeDialog(){
+            document.getElementById('light').style.display='none';
+        }
+        openDialog();
+    </script>
 </head>
 <body>
-	
+<div id="light" class="white_content">
+	<button type="button" class="close" aria-hidden="true" style="color:white;" onclick="closeDialog()">
+    &times;
+  	</button>
+	<h3>处理中</h3>
+	<h4 id="info">图像识别中，请耐心等待…………</h4>
+	<img class="img-responsive center-block" src="/static/images/loading.gif" alt="loading">
+</div>
 <!-- navigation -->
 
 	<div class="container">
@@ -73,7 +109,7 @@
 			</div>
 			<div class="col-md-10 col-md-offset-1 col-sm-12 mt30">
 				<h4>本地文件上传</h4>
-				<form name="pic_upload_form" method="POST" action="pic_upload" enctype="multipart/form-data">
+				<form name="pic_upload_form" method="POST" action="pic_upload" enctype="multipart/form-data" onsubmit="openDialog();">
 					{% csrf_token %}
 					<input name="pic" type="file" class="file" id="pic" data-language="zh" data-theme="explorer-fa" required="required" accept="image">
 				</form>

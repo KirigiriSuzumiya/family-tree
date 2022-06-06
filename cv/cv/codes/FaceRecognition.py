@@ -14,7 +14,7 @@ from dbmodel.models import FaceImage, People
 from dbmodel.models import Image as image_db
 from django.contrib import messages
 info_dict = {}
-
+info =""
 
 def initialing():
     return
@@ -38,6 +38,8 @@ def face_matchng(path,request,tolerance=1):
     img_path = path
     # client_id 为官网获取的AK， client_secret 为官网获取的SK
     # 获取access_token
+    global info
+    info = "正在初始化"
     api_key = "jkyuzoYl4Cly99sEmxNMZog3"
     secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
     host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (
@@ -53,12 +55,14 @@ def face_matchng(path,request,tolerance=1):
     request_url = request_url + "?access_token=" + access_token
     headers = {'content-type': 'application/json'}
     result = []
+    info = "正在分割人脸"
     img = face_recognition.load_image_file(img_path)
     origin = Image.open(img_path)
     locations = face_recognition.face_locations(img)
 
     # 分割人脸并一一调用百度api
     for i in range(len(locations)):
+        info = "正在识别第%d个人脸，共%d个" % (i, len(locations))
         result.append([])
         box = (locations[i][3], locations[i][0], locations[i][1], locations[i][2])
         face = origin.crop(box)
@@ -83,6 +87,7 @@ def face_matchng(path,request,tolerance=1):
         time.sleep(0.5)
 
     # 结果格式化与可视化
+    info = "正在整合信息"
     recognition_result = []
     time_now = time.time()
     df = pd.DataFrame(result)
@@ -99,10 +104,10 @@ def face_matchng(path,request,tolerance=1):
         for j in range(len(result[i])):
             if result[i][j] == "match user is not found":
                 name = "未知人脸"
-                recognition_result[i].append([name, -1])
+                recognition_result[i].append([name, 0])
             elif type(result[i][j]) == str:
                 name = "人脸解析出错"
-                recognition_result[i].append([name, -1])
+                recognition_result[i].append([name, 0])
             elif type(result[i][j]) == dict:
                 name = People.objects.filter(id=result[i][j]["id"])[0].name
                 recognition_result[i].append([name, result[i][j]["score"]])

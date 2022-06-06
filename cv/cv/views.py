@@ -80,8 +80,12 @@ def name_upload(request):
     context = {"namelist" : namelist}
     return render(request, "info.html",context)
 
-
+num=0
 def recognition(request):
+    if request.method == 'POST':
+        global num
+        num = (num+1) % 3
+        return HttpResponse(FaceRecognition.info + "…"*num)
     context = always()
     return render(request, 'recognition.html', context)
 
