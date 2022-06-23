@@ -33,11 +33,18 @@ urlpatterns = [
     path(r'logout', views.logout_view),
     re_path(r'facelist/(.*)$', login_required(views.facelist)),
     re_path(r'face_edit/(.*)$', login_required(views.face_edit)),
+    re_path(r'face_edit_info', login_required(views.face_edit_info)),
     re_path(r'edit_pic/(.*)$', login_required(views.edit_pic)),
     re_path(r'pic_info/(.*)$', login_required(views.pic_info)),
     re_path(r'pic_info_edit/(.*)$', login_required(views.pic_info_edit)),
+    re_path(r'recog_again/(.*)$', login_required(views.recog_again)),
     path(r'demo', views.demo),
     path(r'baidu', views.baidu_upload),
+    path("upload_again", login_required(views.upload_again)),
+    re_path("baidu_extract/(.*)$", login_required(views.baidu_extract)),
+    path("social_graph", views.social_graph),
+    path("social_info", views.social_info),
+    re_path("social_info_person/(.*)$", views.social_info_person)
 ]
 
 

@@ -24,9 +24,46 @@
         {% for msg in messages %}
             alert('{{ msg.message }}');
         {% endfor %}
+
     </script>
 	{% endif %}
-
+	<script type="text/javascript">
+        function upload_again(num,name,path){
+            var csrf = $('input[name="csrfmiddlewaretoken"]').val();  //增加csrf变量将在data中传参以避免403错误
+        	// 朝后端发送ajax请求
+				$.ajax({
+				// 1.指定朝哪个后端发送ajax请求
+				url:'/upload_again', //不写就是朝当前地址提交【与form表单的action参数相同】
+				// 2.请求方式
+				type:'post',  // 不指定默认就是get，都是小写
+				// 3.数据
+				data:{'csrfmiddlewaretoken': csrf,'num':num,'name':name,'path':path},
+				// 4.回调函数:当后端给你返回结果的时候会自动触发，args接受后端的返回结果
+				success:function (args) {
+					document.getElementById(num).innerHTML=args;
+					document.getElementById(num).onclick = "";
+				}
+				})
+        }
+        function upload_input(num,path){
+        	var name = prompt("输入补录对象的姓名");
+            var csrf = $('input[name="csrfmiddlewaretoken"]').val();  //增加csrf变量将在data中传参以避免403错误
+        	// 朝后端发送ajax请求
+				$.ajax({
+				// 1.指定朝哪个后端发送ajax请求
+				url:'/upload_again', //不写就是朝当前地址提交【与form表单的action参数相同】
+				// 2.请求方式
+				type:'post',  // 不指定默认就是get，都是小写
+				// 3.数据
+				data:{'csrfmiddlewaretoken': csrf,'num':num,'name':name,'path':path},
+				// 4.回调函数:当后端给你返回结果的时候会自动触发，args接受后端的返回结果
+				success:function (args) {
+					document.getElementById(num).innerHTML=args;
+					document.getElementById(num).onclick = "";
+				}
+				})
+        }
+    </script>
 </head>
 <body>
 
@@ -73,6 +110,7 @@
 				<a href="{% static path%}" data-lightbox-gallery="portfolio-gallery"><img class="img-responsive" src="{% static path%}" alt="总览图"></a>
                 <h4>识别结果:</h4>
 				<table class="table">
+					{% csrf_token %}
 					<thead>
 						<tr>
 						  	<th>人脸编号</th>
@@ -84,7 +122,14 @@
 				    <tbody>
 				    {% for faceresult in result %}
 						<tr>
-							<td><h4>{{forloop.counter0}}号人脸</h4></td>
+							<td><h4>{{forloop.counter}}号人脸</h4></td>
+							<td></td>
+							<td></td>
+							<td>
+								<h4>
+									<a id="{{forloop.counter}}" href="#{{forloop.counter}}" onclick="upload_input({{forloop.counter}},'{% static path%}');">补录(带输入框)>></a>
+								</h4>
+							</td>
 						</tr>
 							{% for name,score in faceresult %}
 						<tr>
@@ -93,8 +138,9 @@
 							<td><h4>{{score|stringformat:".2f"}}%</h4></td>
 							<td>
 								<h4>
-								{% if name %}
-								<a href="/facelist/{{name}}">详情>></a>
+								{% if  name != "未知人脸" %}
+									<a href="/facelist/{{name}}">详情>></a>
+									<a id="{{forloop.parentloop.counter}}" href="#{{forloop.parentloop.counter}}" onclick="upload_again({{forloop.parentloop.counter}},'{{name}}','{% static path%}');">补录>></a>
 								{% endif %}
 								</h4>
 							</td>

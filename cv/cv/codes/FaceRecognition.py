@@ -1,4 +1,5 @@
 import base64
+import shutil
 import time
 from io import BytesIO
 
@@ -48,7 +49,7 @@ def face_matchng(path,request,tolerance=1):
     if response:
         access_token = response.json()["access_token"]
     else:
-        exit(0)
+        return 0
 
     # 设置请求包体
     request_url = "https://aip.baidubce.com/rest/2.0/face/v3/multi-search"
@@ -59,7 +60,8 @@ def face_matchng(path,request,tolerance=1):
     img = face_recognition.load_image_file(img_path)
     origin = Image.open(img_path)
     locations = face_recognition.face_locations(img)
-
+    time_now = os.path.basename(img_path)[:os.path.basename(img_path).rfind('.')]
+    file_type = os.path.basename(img_path)[os.path.basename(img_path).rfind('.'):]
     # 分割人脸并一一调用百度api
     for i in range(len(locations)):
         info = "正在识别第%d个人脸，共%d个" % (i, len(locations))
@@ -67,7 +69,7 @@ def face_matchng(path,request,tolerance=1):
         box = (locations[i][3], locations[i][0], locations[i][1], locations[i][2])
         face = origin.crop(box)
         output_buffer = BytesIO()
-        pic_save_path = str(time.time()) + img_path[img_path.rfind("."):]
+        pic_save_path = str(time_now) + "-" + str(i+1) + img_path[img_path.rfind("."):]
         pic_save_path = os.path.join(BASE_DIR, "statics", "temp_image", pic_save_path)
         print(pic_save_path)
         face.save(pic_save_path)
@@ -89,9 +91,8 @@ def face_matchng(path,request,tolerance=1):
     # 结果格式化与可视化
     info = "正在整合信息"
     recognition_result = []
-    time_now = time.time()
     df = pd.DataFrame(result)
-    df.to_excel(os.path.join(BASE_DIR, 'statics', 'temp_image', '%f.xls' % time_now))
+    df.to_excel(os.path.join(BASE_DIR, 'statics', 'temp_image', time_now+'.xls'))
     pil_image = Image.open(img_path)
     draw = ImageDraw.Draw(pil_image)
     font_size = pil_image.size[0] // 50
@@ -99,7 +100,7 @@ def face_matchng(path,request,tolerance=1):
     for i in range(len(locations)):
         box = (locations[i][3], locations[i][0], locations[i][1], locations[i][2])
         draw.rectangle(box, None, 'yellow', width=font_size // 8)
-        draw.text((box[0:2]), str(i), "red", ft)
+        draw.text((box[0:2]), str(i+1), "red", ft)
         recognition_result.append([])
         for j in range(len(result[i])):
             if result[i][j] == "match user is not found":
@@ -114,7 +115,7 @@ def face_matchng(path,request,tolerance=1):
         if recognition_result[i][0][0] == "未知人脸" or recognition_result[i][0][0] == "人脸解析出错":
             continue
         draw.text((box[0], box[1] - font_size), str(recognition_result[i][0][0]), "red", ft)
-    img_path = os.path.join('temp_image', '%f.jpg' % time_now)
+    img_path = os.path.join('temp_image', time_now + file_type)
     pil_image.save(os.path.join(BASE_DIR, 'statics', img_path))
     return_dic = {'path': img_path, 'result': recognition_result}
     return return_dic
@@ -123,8 +124,12 @@ def face_matchng(path,request,tolerance=1):
 def dict_add(path, name):
     name_path = os.path.split(path)[-1]
     img_path = name_path[:name_path.find("-")]+name_path[name_path.rfind("."):]
-    image_obj = image_db.objects.filter(path=img_path)[0]
-
+    try:
+        image_obj = image_db.objects.filter(path=img_path)[0]
+    except:
+        shutil.copy(os.path.join(BASE_DIR, "upload", img_path), os.path.join(BASE_DIR, "cv", "model_image", img_path))
+        image_obj = image_db(path=img_path)
+        image_obj.save()
     try:
         pic_save_path = os.path.join(BASE_DIR, 'cv', 'model_image', name+'@'+name_path)
         fpw = open(pic_save_path, "wb")
@@ -153,7 +158,7 @@ def dict_add(path, name):
         if response:
             access_token = response.json()["access_token"]
         else:
-            exit(0)
+            return "token获取失败"
         request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/user/add"
         request_url = request_url + "?access_token=" + access_token
         headers = {'content-type': 'application/json'}
@@ -165,7 +170,7 @@ def dict_add(path, name):
         headers = {'content-type': 'application/json'}
         response = requests.post(request_url, data=params, headers=headers)
         if response.json()["error_msg"] !="SUCCESS":
-            return 0
+            return "人脸编码失败或图像已存在"
         else:
             obj.token = response.json()["result"]["face_token"]
             obj.logid = response.json()["log_id"]

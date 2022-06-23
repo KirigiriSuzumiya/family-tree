@@ -26,10 +26,46 @@
         {% endfor %}
     </script>
 	{% endif %}
+	<style>
+        .white_content {
+            display: none;
+            position:fixed;
+            top:15%;
+            left:30%;
+            width:40%;
+            padding: 20px;
+            text-align:center;
+            border: 10px solid grey;
+            background-color: black;
+            z-index:1002;
+            overflow: auto;
+			opacity: 80%;
+			color: #fff;
+        }
+        .white_content h3 h4{
+        	color: #fff;
+        }
 
+    </style>
+	<script type="text/javascript">
+        function openDialog(){
+            document.getElementById('light').style.display='block';
+        }
+        function closeDialog(){
+            document.getElementById('light').style.display='none';
+        }
+        openDialog();
+    </script>
 </head>
 <body>
-
+<div id="light" class="white_content">
+	<button type="button" class="close" aria-hidden="true" style="color:white;" onclick="closeDialog()">
+    &times;
+  	</button>
+	<h3>处理中</h3>
+	<h4 id="info">图像识别中，请耐心等待…………</h4>
+	<img class="img-responsive center-block" src="/static/images/loading.gif" alt="loading">
+</div>
 <!-- navigation -->
 
 	<div class="container">
@@ -97,6 +133,7 @@
 					{% endfor %}
 				  </tbody>
 				</table>
+				<a class="btn center-block" href="/recog_again/{{path}}" onclick="openDialog();">合照重识（不会修改数据，仅供比对）</a>
 			</div>
 		</div>
 	</div>

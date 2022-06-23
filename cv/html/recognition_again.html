@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
 	{% load static %}
-	<title>家·谱——人员录入—录入姓名</title>
+	<title>家·谱——人员录入—补充信息</title>
     <meta name="keywords" content="">
 	<meta name="description" content="">
 	<meta charset="utf-8">
@@ -15,7 +15,7 @@
 	<link rel="stylesheet" href="/static/css/nivo-lightbox.css">
 	<link rel="stylesheet" href="/static/css/nivo_themes/default/default.css">
 	<link rel="stylesheet" href="/static/css/templatemo-style.css">
-	<link rel="stylesheet" href="/static/css/font-awesome.css">
+	<link rel="stylesheet" href="/static/css/font-awesome.min.css">
 	<link href="/static/css/theme.css" rel="stylesheet">
 	<!-- google web font css -->
 <!--	<link href='http://fonts.useso.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>-->
@@ -24,9 +24,28 @@
         {% for msg in messages %}
             alert('{{ msg.message }}');
         {% endfor %}
+
     </script>
 	{% endif %}
-
+	<script type="text/javascript">
+        function upload_again(num,name,path){
+            var csrf = $('input[name="csrfmiddlewaretoken"]').val();  //增加csrf变量将在data中传参以避免403错误
+        	// 朝后端发送ajax请求
+				$.ajax({
+				// 1.指定朝哪个后端发送ajax请求
+				url:'/upload_again', //不写就是朝当前地址提交【与form表单的action参数相同】
+				// 2.请求方式
+				type:'post',  // 不指定默认就是get，都是小写
+				// 3.数据
+				data:{'csrfmiddlewaretoken': csrf,'num':num,'name':name,'path':path},
+				// 4.回调函数:当后端给你返回结果的时候会自动触发，args接受后端的返回结果
+				success:function (args) {
+					document.getElementById(num).innerHTML=args;
+					document.getElementById(num).onclick = "";
+				}
+				})
+        }
+    </script>
 </head>
 <body>
 
@@ -65,40 +84,54 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-md-offset-2 col-md-8 col-sm-12">
-				<h2><i class="fa fa-user"></i>人员录入</h2>
-				<h3 class="col-md-4 col-sm-4" style="color:grey;"><i class="fa fa-check"></i>上传相片</h3>
-				<h3 class="col-md-4 col-sm-4" ><i class="fa fa-spinner"></i>录入姓名</h3>
-				<h3 class="col-md-4 col-sm-4" style="color:grey;"><i class="fa fa-arrow-right"></i>补充信息</h3>
+                <h2><i class="fa fa-search"></i>人员识别</h2>
+				<h3 class="col-md-4 col-sm-4 col-md-offset-3"style="color:grey;"><i class="fa fa-check"></i>上传相片</h3>
+				<h3 class="col-md-4 col-sm-4" ><i class="fa fa-spinner"></i>查看结果</h3>
 			</div>
-			<div class="col-md-8 col-md-offset-2 col-sm-12 mt30">
-				<a href="{% static total_path%}" data-lightbox-gallery="portfolio-gallery"><img class="img-responsive center-block" src="{% static total_path%}" alt="总览图"></a>
-				<a class="btn center-block" href="/baidu_extract/{{total_path}}">使用百度api重新识别</a>
-				<h4>姓名录入：（若不需要录入请留空）</h4>
-				<form  name="name_upload_form" method="POST" action="name_upload">
+			<div class="col-md-10 col-md-offset-1 col-sm-12 mt30">
+				<a href="{% static path%}" data-lightbox-gallery="portfolio-gallery"><img class="img-responsive" src="{% static path%}" alt="总览图"></a>
+                <h4>识别结果:</h4>
+				<table class="table">
 					{% csrf_token %}
-					<input type="text" name="path_list" value="{{path_list}}" readonly hidden>
-					<div class="row" id="team" >
-						{% for path in path_list %}
-						<div class="col-md-3 col-sm-3 col-xs-6">
-							<label for="name{{forloop.counter}}">
-								<div class = "col-sm-12 col-md-12">
-									<img src="{% static path %}" style="width: 100%; max-width: 100%; height: auto;" alt="{{forloop.counter}}号人脸">
-								</div>
-								<h5 class="col_md-12 col-sm-12">{{forloop.counter}}#姓名录入：</h5>
-								<input class="form-control" type="text" style="height:80%;" name="name{{forloop.counter}}" id="name{{forloop.counter}}">
-								<h6>（若不需要录入请留空）</h6>
-							</label>
-						</div>
-						{% endfor %}
-					</div>
-					<div class ="row">
-						<div class="col-md-2 col-md-offset-5 col-xs-2 col-xs-offset-5">
-							<button type="submit" name="submit" class="btn btn-default">提交</button>
-						</div>
-
-					</div>
-				</form>
-
+					<thead>
+						<tr>
+						  	<th>人脸编号</th>
+						  	<th>识别结果</th>
+							<th>准确度</th>
+							<th>更多信息</th>
+						</tr>
+					</thead>
+				    <tbody>
+				    {% for faceresult in result %}
+						<tr>
+							<td><h4>{{forloop.counter}}号人脸</h4></td>
+						</tr>
+							{% for name,score in faceresult %}
+						<tr>
+							<td><h4>&nbsp</h4></td>
+							<td><h4>{{name|default:"未知"}}</h4></td>
+							<td><h4>{{score|stringformat:".2f"}}%</h4></td>
+							<td>
+								<h4>
+								{% if  name != "未知人脸" %}
+									<a href="/facelist/{{name}}">详情>></a>
+									<a id="{{forloop.parentloop.counter}}" href="#{{forloop.parentloop.counter}}" onclick="upload_again({{forloop.parentloop.counter}},'{{name}}','{% static path%}');">补录>></a>
+								{% endif %}
+								</h4>
+							</td>
+						</tr>
+							{% endfor %}
+					<tr></tr>
+				    {% endfor %}
+				  	</tbody>
+				</table>
+				<h4>结果数据下载</h4>
+				<a class="col-md-5 col-xs-12 btn btn-default" href="{%static path%}" download="result.jpg">
+					<h4><i class="fa fa-file-photo-o"></i>图片</h4>
+				</a>
+				<a class="col-md-5 col-md-offset-2 col-xs-12 btn btn-default" href="{%static xls_path%}" download="result.xls">
+					<h4><i class="fa fa-file-excel-o"></i>表格数据</h4>
+				</a>
 			</div>
 		</div>
 	</div>
