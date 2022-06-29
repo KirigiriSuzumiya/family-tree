@@ -28,6 +28,7 @@ urlpatterns = [
     path(r'recognition', login_required(views.recognition)),
     path(r'recognition_upload', login_required(views.recognition_upload)),
     path(r'namelist', login_required(views.namelist)),
+    path(r'piclist', login_required(views.piclist)),
     path(r'user', views.user_view),
     path(r'user_oper', views.user_oper),
     path(r'logout', views.logout_view),

@@ -24,8 +24,8 @@ def extractor(img_path):
         draw.text((box[0:2]), str(i+1), "red", ft)
     img_path = os.path.join(BASE_DIR, 'cv', 'model_image', os.path.split(img_path)[-1])
     pil_image.save(img_path)
-    img_path = os.path.join(BASE_DIR, 'statics', 'temp_image',os.path.split(img_path)[-1])
-    image = image_db(path=os.path.split(img_path)[-1])
+    img_path = os.path.join(BASE_DIR, 'statics', 'temp_image', os.path.split(img_path)[-1])
+    image = image_db(path=os.path.split(img_path)[-1], count=len(face_list))
     image.save()
     # 保存各个人头大头贴
     count = 1
@@ -42,7 +42,7 @@ def extractor(img_path):
 def baidu_extractor(img_path):
     BASE_DIR = Path(__file__).resolve().parent.parent.parent
     url = 'http://124.221.104.193/static/'+img_path
-    print("地址：",url)
+    print("地址：", url)
     img_path = os.path.join(BASE_DIR, "upload",img_path)
     # client_id 为官网获取的AK， client_secret 为官网获取的SK
     # 获取access_token
@@ -84,8 +84,9 @@ def baidu_extractor(img_path):
     img_path = os.path.join(BASE_DIR, 'cv', 'model_image', os.path.split(img_path)[-1])
     pil_image.save(img_path)
     img_path = os.path.join(BASE_DIR, 'statics', 'temp_image', os.path.split(img_path)[-1])
-    # image = image_db(path=os.path.split(img_path)[-1])
-    # image.save()
+    image = image_db.objects.get(path=os.path.split(img_path)[-1])
+    image.count = len(locations)
+    image.save()
     # 保存各个人头大头贴
     count = 1
     for location in locations:

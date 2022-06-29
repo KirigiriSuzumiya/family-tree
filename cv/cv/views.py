@@ -15,6 +15,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 import subprocess
 from pypinyin import lazy_pinyin
+from django.core.paginator import Paginator
 import re
 
 
@@ -145,10 +146,57 @@ def index(request):
     return render(request, 'index.html', context)
 
 
+def piclist(request):
+    if request.method == "POST":
+        names = image_db.objects.filter(title__icontains=request.POST["search"])
+    else:
+        names = image_db.objects.all()
+    current_num = int(request.GET.get("page", 1))
+    context = always()
+    list_pic = []
+    count = 1
+    for i in names:
+        print(i)
+        name = i.path
+        if i.title:
+            name = i.title
+        path =i.path
+        number = i.count
+        relate = len(FaceImage.objects.filter(image=i))
+        if relate == 0:
+            continue
+        list_pic.append([name, path, number, count, relate])
+        count = (count + 1) % 2
+    paginator = Paginator(list_pic, 10)
+    context['piclist'] = paginator.page(current_num)
+    # 大于11页时
+    if paginator.num_pages > 11:
+        # 当前页码的后5页数超过最大页码时，显示最后10项
+        if current_num + 5 > paginator.num_pages:
+            page_range = range(paginator.num_pages - 10, paginator.num_pages + 1)
+        # 当前页码的前5页数为负数时，显示开始的10项
+        elif current_num - 5 < 1:
+            page_range = range(1, 12)
+        else:
+            # 显示左5页到右5页的页码
+            page_range = range(current_num - 5, current_num + 5 + 1)
+    # 小于11页时显示所有页码
+    else:
+        page_range = paginator.page_range
+    context['page_range'] = page_range
+    context['current_num'] = current_num
+    context['end_page'] = paginator.num_pages
+    return render(request, 'piclist.html', context)
+
+
 def namelist(request):
     context = always()
-    context['namelist'] = []
-    names = People.objects.all()
+    namelist = []
+    if request.method == "POST":
+        names = People.objects.filter(name__icontains=request.POST["search"])
+    else:
+        names = People.objects.all()
+    current_num = int(request.GET.get("page", 1))
     count = 1
     for i in names:
         name = i.name
@@ -167,13 +215,32 @@ def namelist(request):
             pic_obj = 'none'
             upload_time = 'none'
             path = ''
-        context['namelist'].append([name, upload_time, path, pic_obj, count,en_name])
+        namelist.append([name, upload_time, path, pic_obj, count,en_name])
         count = (count + 1) % 4
-    context["namelist"].sort(key=lambda char: lazy_pinyin(char[0])[0][0])
+    namelist.sort(key=lambda char: lazy_pinyin(char[0])[0][0])
     count = 1
-    for name in context["namelist"]:
+    for name in namelist:
         name[4] = count
-        count = (count+1)%4
+        count = (count+1) % 4
+    paginator = Paginator(namelist, 24)
+    context['namelist'] = paginator.page(current_num)
+    # 大于11页时
+    if paginator.num_pages > 11:
+        # 当前页码的后5页数超过最大页码时，显示最后10项
+        if current_num + 5 > paginator.num_pages:
+            page_range = range(paginator.num_pages - 10, paginator.num_pages + 1)
+        # 当前页码的前5页数为负数时，显示开始的10项
+        elif current_num - 5 < 1:
+            page_range = range(1, 12)
+        else:
+            # 显示左5页到右5页的页码
+            page_range = range(current_num - 5, current_num + 5 + 1)
+    # 小于11页时显示所有页码
+    else:
+        page_range = paginator.page_range
+    context['page_range'] = page_range
+    context['current_num'] = current_num
+    context['end_page'] = paginator.num_pages
     return render(request, 'namelist.html', context)
 
 
@@ -206,8 +273,9 @@ def facelist(request, name):
     context['loc3_x'] = name_obj.loc3_x
     context['loc3_y'] = name_obj.loc3_y
     context['loc3_info'] = name_obj.loc3_info
+    context['institute'] = name_obj.institute
     context['family'] = []
-    face_obj_list = FaceImage.objects.filter(name=name_obj)
+    face_obj_list = FaceImage.objects.filter(name=name_obj).order_by("-image__token_time")
     context['first_pic'] = '/static/' + face_obj_list[0].path
     count = 0
     for face_obj in face_obj_list:
@@ -216,8 +284,7 @@ def facelist(request, name):
         count = (count + 1) % 4
         re_path = face_obj.image.path
         token_time = face_obj.image.token_time
-        context['facelist'].append([upload_time, path, count, re_path,token_time])
-
+        context['facelist'].append([upload_time, path, count, re_path, token_time])
     context["familytreepath"], family = familytree(request, name)["path"], familytree(request, name)["check"]
     for i in family:
         context["family"].append(i.name)
@@ -274,7 +341,30 @@ def face_edit(request, re_name):
     people_obj.xing = request.POST['xing']
     people_obj.ming = request.POST['ming']
     people_obj.family_name = request.POST['family_name']
+    people_obj.institute = request.POST['institute']
     people_obj.save()
+
+    if re_name != request.POST['name']:
+        peo_list = People.objects.filter(mate=re_name)
+        for peo in peo_list:
+            peo.mate = request.POST['name']
+            peo.save()
+        peo_list = People.objects.filter(mother=re_name)
+        for peo in peo_list:
+            peo.mother = request.POST['name']
+            peo.save()
+        peo_list = People.objects.filter(father=re_name)
+        for peo in peo_list:
+            peo.father = request.POST['name']
+            peo.save()
+        peo_list = People.objects.all()
+        for peo in peo_list:
+            if not peo.kids:
+                continue
+            if re_name in peo.kids:
+                num = peo.kids.index(re_name)
+                peo.kids[num] = request.POST['name']
+                peo.save()
     messages.error(request, re_name + "已修改")
     return HttpResponseRedirect("/facelist/%s" % people_obj.name)
 

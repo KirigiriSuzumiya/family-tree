@@ -52,13 +52,6 @@
 </div>
 
 <!-- contact header section -->
-<div id="contact-header">
-	<div class="container">
-		<div class="row">
-			<div class="col-md-12 col-sm-12"></div>
-		</div>
-	</div>
-</div>
 
 <!-- contact section -->
 <div id="contact">
@@ -74,9 +67,11 @@
 				<a href="{% static total_path%}" data-lightbox-gallery="portfolio-gallery"><img class="img-responsive center-block" src="{% static total_path%}" alt="总览图"></a>
 				<a class="btn center-block" href="/baidu_extract/{{total_path}}">使用百度api重新识别</a>
 				<h4>姓名录入：（若不需要录入请留空）</h4>
+				<h4><a href="pic_info/{{total_path}}">转合照详情>></a></h4>
 				<form  name="name_upload_form" method="POST" action="name_upload">
 					{% csrf_token %}
 					<input type="text" name="path_list" value="{{path_list}}" readonly hidden>
+
 					<div class="row" id="team" >
 						{% for path in path_list %}
 						<div class="col-md-3 col-sm-3 col-xs-6">

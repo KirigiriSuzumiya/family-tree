@@ -62,6 +62,12 @@ def face_matchng(path,request,tolerance=1):
     locations = face_recognition.face_locations(img)
     time_now = os.path.basename(img_path)[:os.path.basename(img_path).rfind('.')]
     file_type = os.path.basename(img_path)[os.path.basename(img_path).rfind('.'):]
+    try:
+        image_obj = image_db.objects.get(path=os.path.basename(img_path))
+        image_obj.count = len(locations)
+        image_obj.save()
+    except:
+        pass
     # 分割人脸并一一调用百度api
     for i in range(len(locations)):
         info = "正在识别第%d个人脸，共%d个" % (i, len(locations))
@@ -110,8 +116,12 @@ def face_matchng(path,request,tolerance=1):
                 name = "人脸解析出错"
                 recognition_result[i].append([name, 0])
             elif type(result[i][j]) == dict:
-                name = People.objects.filter(id=result[i][j]["id"])[0].name
-                recognition_result[i].append([name, result[i][j]["score"]])
+                try:
+                    name = People.objects.filter(id=result[i][j]["id"])[0].name
+                    recognition_result[i].append([name, result[i][j]["score"]])
+                except:
+                    name = "本地库丢失id=%s" % result[i][j]["id"]
+                    recognition_result[i].append([name, result[i][j]["score"]])
         if recognition_result[i][0][0] == "未知人脸" or recognition_result[i][0][0] == "人脸解析出错":
             continue
         draw.text((box[0], box[1] - font_size), str(recognition_result[i][0][0]), "red", ft)

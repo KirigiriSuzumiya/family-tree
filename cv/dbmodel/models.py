@@ -32,6 +32,10 @@ class People(models.Model):
     ming = models.CharField(max_length=100, blank=True, null=True)
     family_name = models.CharField(max_length=100, blank=True, null=True)
 
+    visited = models.IntegerField(default=0)
+    visit_time = models.CharField(max_length=500, blank=True, null=True)
+    institute = models.CharField(max_length=500, blank=True, null=True)
+
     def __str__(self):
         return self.name
 
@@ -40,7 +44,7 @@ class Image(models.Model):
     token_time = models.DateTimeField(blank=True, null=True)
     info = models.CharField(max_length=1000, blank=True, null=True)
     title = models.CharField(max_length=200, blank=True, null=True)
-
+    count = models.IntegerField(blank=True, null=True)
     def __str__(self):
         return self.path
 
