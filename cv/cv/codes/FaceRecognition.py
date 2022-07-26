@@ -119,9 +119,13 @@ def face_matchng(path,request,tolerance=1):
                 try:
                     name = People.objects.filter(id=result[i][j]["id"])[0].name
                     recognition_result[i].append([name, result[i][j]["score"]])
+                    if result[i][j]["score"] == 100:
+                        draw.rectangle(box, None, 'lime', width=font_size // 8)
                 except:
                     name = "本地库丢失id=%s" % result[i][j]["id"]
                     recognition_result[i].append([name, result[i][j]["score"]])
+                    if result[i][j]["score"] == 100:
+                        draw.rectangle(box, None, 'lime', width=font_size // 8)
         if recognition_result[i][0][0] == "未知人脸" or recognition_result[i][0][0] == "人脸解析出错":
             continue
         draw.text((box[0], box[1] - font_size), str(recognition_result[i][0][0]), "red", ft)

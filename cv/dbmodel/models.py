@@ -12,6 +12,10 @@ class People(models.Model):
     sex = models.CharField(blank=True, choices=sex_choice.choices, max_length=20, null=True)
     birth_date = models.DateTimeField(blank=True, null=True)
     death_date = models.DateTimeField(blank=True, null=True)
+    xing = models.CharField(max_length=100, blank=True, null=True)
+    ming = models.CharField(max_length=100, blank=True, null=True)
+    zi = models.CharField(max_length=100, blank=True, null=True)
+    other_name = models.CharField(max_length=100, blank=True, null=True)
 
 
     mate = models.CharField(max_length=50, blank=True, null=True)
@@ -28,13 +32,12 @@ class People(models.Model):
     loc3_x = models.CharField(max_length=50, blank=True, null=True)
     loc3_y = models.CharField(max_length=50, blank=True, null=True)
     loc3_info = models.CharField(max_length=50, blank=True, null=True)
-    xing = models.CharField(max_length=100, blank=True, null=True)
-    ming = models.CharField(max_length=100, blank=True, null=True)
     family_name = models.CharField(max_length=100, blank=True, null=True)
 
     visited = models.IntegerField(default=0)
     visit_time = models.CharField(max_length=500, blank=True, null=True)
     institute = models.CharField(max_length=500, blank=True, null=True)
+    located_time = models.CharField(max_length=500, blank=True, null=True)
 
     def __str__(self):
         return self.name

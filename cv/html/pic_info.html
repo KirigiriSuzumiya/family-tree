@@ -113,6 +113,7 @@
 							{% csrf_token %}
 							标题：<input class="form-control" type="text" name="title" value="{{title|default:''}}">
 							拍摄时间：<input class="form-control" type="datetime-local" name="token_time" value="{{token_time|default:''}}">
+							预估时间：{{time_range}}
 
 					</div>
 					<div class="col-md-6 col-sm-12">

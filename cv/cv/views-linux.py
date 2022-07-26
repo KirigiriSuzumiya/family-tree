@@ -1,6 +1,7 @@
 import base64
 
 import requests
+from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 import os
@@ -15,8 +16,9 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 import subprocess
 from pypinyin import lazy_pinyin
-import re
 from django.core.paginator import Paginator
+import re
+
 # -*- coding: CP936 -*-
 
 def always():
@@ -156,7 +158,6 @@ def piclist(request):
     list_pic = []
     count = 1
     for i in names:
-        print(i)
         name = i.path
         if i.title:
             name = i.title
@@ -193,7 +194,10 @@ def namelist(request):
     context = always()
     namelist = []
     if request.method == "POST":
-        names = People.objects.filter(name__icontains=request.POST["search"])
+        names = People.objects.filter(Q(name__icontains=request.POST["search"])|
+                                      Q(first_name__icontains=request.POST["search"]) |
+                                      Q(middle_name__icontains=request.POST["search"]) |
+                                      Q(last_name__icontains=request.POST["search"])).distinct()
     else:
         names = People.objects.all()
     current_num = int(request.GET.get("page", 1))
@@ -222,25 +226,36 @@ def namelist(request):
     for name in namelist:
         name[4] = count
         count = (count+1) % 4
-    paginator = Paginator(namelist, 24)
-    context['namelist'] = paginator.page(current_num)
-    # 大于11页时
-    if paginator.num_pages > 11:
-        # 当前页码的后5页数超过最大页码时，显示最后10项
-        if current_num + 5 > paginator.num_pages:
-            page_range = range(paginator.num_pages - 10, paginator.num_pages + 1)
-        # 当前页码的前5页数为负数时，显示开始的10项
-        elif current_num - 5 < 1:
-            page_range = range(1, 12)
-        else:
-            # 显示左5页到右5页的页码
-            page_range = range(current_num - 5, current_num + 5 + 1)
-    # 小于11页时显示所有页码
+    if request.method == "POST":
+        paginator = Paginator(namelist, len(namelist))
     else:
-        page_range = paginator.page_range
-    context['page_range'] = page_range
-    context['current_num'] = current_num
-    context['end_page'] = paginator.num_pages
+        paginator = Paginator(namelist, 24)
+
+    try:
+        context['namelist'] = paginator.page(current_num)
+        # 大于11页时
+        if paginator.num_pages > 11:
+            # 当前页码的后5页数超过最大页码时，显示最后10项
+            if current_num + 5 > paginator.num_pages:
+                page_range = range(paginator.num_pages - 10, paginator.num_pages + 1)
+            # 当前页码的前5页数为负数时，显示开始的10项
+            elif current_num - 5 < 1:
+                page_range = range(1, 12)
+            else:
+                # 显示左5页到右5页的页码
+                page_range = range(current_num - 5, current_num + 5 + 1)
+        # 小于11页时显示所有页码
+        else:
+            page_range = paginator.page_range
+        context['page_range'] = page_range
+        context['current_num'] = current_num
+        context['end_page'] = paginator.num_pages
+    except:
+        context['namelist'] = []
+        context['page_range'] = [1]
+        context['current_num'] = current_num
+        context['end_page'] = 1
+
     return render(request, 'namelist.html', context)
 
 
@@ -258,11 +273,17 @@ def facelist(request, name):
     context['xing'] = name_obj.xing
     context['ming'] = name_obj.ming
     context['family_name'] = name_obj.family_name
+    context['zi'] = name_obj.zi
+    context['other_name'] = name_obj.other_name
+    context['located_time'] = name_obj.located_time
 
     context['mate'] = name_obj.mate
     context['father'] = name_obj.father
     context['mother'] = name_obj.mother
-    context['kids'] = name_obj.kids
+    if name_obj.kids:
+        context['kids'] = ';'.join(name_obj.kids)
+    else:
+        context['kids'] = ''
     context['info'] = name_obj.info
     context['loc1_x'] = name_obj.loc1_x
     context['loc1_y'] = name_obj.loc1_y
@@ -284,7 +305,12 @@ def facelist(request, name):
         count = (count + 1) % 4
         re_path = face_obj.image.path
         token_time = face_obj.image.token_time
-        context['facelist'].append([upload_time, path, count, re_path, token_time])
+        try:
+            token_age = face_obj.image.token_time.year - face_obj.name.birth_date.year
+        except:
+            token_age = None
+        context['facelist'].append([upload_time, path, count, re_path, token_time, token_age])
+
     context["familytreepath"], family = familytree(request, name)["path"], familytree(request, name)["check"]
     for i in family:
         context["family"].append(i.name)
@@ -303,10 +329,10 @@ def facelist(request, name):
 
 def face_edit(request, re_name):
     people_obj = People.objects.get(name=re_name)
-    people_obj.name = request.POST['name']
-    people_obj.first_name = request.POST['first_name']
-    people_obj.middle_name = request.POST['middle_name']
-    people_obj.last_name = request.POST['last_name']
+    people_obj.name = request.POST['name'].strip()
+    people_obj.first_name = request.POST['first_name'].strip()
+    people_obj.middle_name = request.POST['middle_name'].strip()
+    people_obj.last_name = request.POST['last_name'].strip()
     try:
         people_obj.sex = request.POST['sex']
     except:
@@ -323,9 +349,9 @@ def face_edit(request, re_name):
     people_obj.father = request.POST['father']
     people_obj.mother = request.POST['mother']
     try:
-        people_obj.kids = eval(request.POST['kids'])
+        people_obj.kids = [i for i in request.POST['kids'].split(';') if i != '']
     except:
-        people_obj.kids = request.POST['kids']
+        people_obj.kids = []
 
     people_obj.info = request.POST['info']
     people_obj.loc1_x = request.POST['loc1_x']
@@ -342,20 +368,23 @@ def face_edit(request, re_name):
     people_obj.ming = request.POST['ming']
     people_obj.family_name = request.POST['family_name']
     people_obj.institute = request.POST['institute']
+    people_obj.zi = request.POST['zi']
+    people_obj.other_name = request.POST['other_name']
+    people_obj.located_time = request.POST['located_time']
     people_obj.save()
 
-    if re_name != request.POST['name']:
+    if re_name != request.POST['name'].strip():
         peo_list = People.objects.filter(mate=re_name)
         for peo in peo_list:
-            peo.mate = request.POST['name']
+            peo.mate = request.POST['name'].strip()
             peo.save()
         peo_list = People.objects.filter(mother=re_name)
         for peo in peo_list:
-            peo.mother = request.POST['name']
+            peo.mother = request.POST['name'].strip()
             peo.save()
         peo_list = People.objects.filter(father=re_name)
         for peo in peo_list:
-            peo.father = request.POST['name']
+            peo.father = request.POST['name'].strip()
             peo.save()
         peo_list = People.objects.all()
         for peo in peo_list:
@@ -363,7 +392,7 @@ def face_edit(request, re_name):
                 continue
             if re_name in peo.kids:
                 num = peo.kids.index(re_name)
-                peo.kids[num] = request.POST['name']
+                peo.kids[num] = request.POST['name'].strip()
                 peo.save()
     messages.error(request, re_name + "已修改")
     return HttpResponseRedirect("/facelist/%s" % people_obj.name)
@@ -384,6 +413,18 @@ def face_edit_info(request):
             kids.append(people.name)
     except:
         pass
+    try:
+        people_objs = People.objects.filter(mate=name)
+        kids.extend(people_objs[0].kids)
+    except:
+        pass
+    try:
+        res_kids = []
+        [res_kids.append(i) for i in kids if i not in res_kids]
+        res_kids = ';'.join(res_kids)
+    except:
+        res_kids = 'None'
+
     mate = None
     try:
         people_objs = People.objects.filter(mate=name)
@@ -400,7 +441,7 @@ def face_edit_info(request):
                 parents.append(people.name)
     except:
         pass
-    return HttpResponse("补齐建议—伴侣：%s，孩子：%s，父辈：%s" % (mate, kids, parents))
+    return HttpResponse("补齐建议—伴侣：%s，孩子：%s，父辈：%s" % (mate, res_kids, parents))
 
 
 def edit_pic(request, path):
@@ -450,8 +491,8 @@ def familytree(request, name):
                 try:
                     People.objects.get(name=kid)
                     if People.objects.get(name=kid) not in check:
-                        peo_obj_list.insert(peo_obj_list.index(peo_now), People.objects.get(name=kid))
-                        check.insert(peo_obj_list.index(peo_now), People.objects.get(name=kid))
+                        peo_obj_list.insert(peo_obj_list.index(peo_now)+1, People.objects.get(name=kid))
+                        check.insert(check.index(peo_now)+1, People.objects.get(name=kid))
                 except:
                     pass
                 finally:
@@ -469,8 +510,8 @@ def familytree(request, name):
         try:
             People.objects.get(name=peo_now.father)
             if People.objects.get(name=peo_now.father) not in check:
-                peo_obj_list.insert(peo_obj_list.index(peo_now)-1, People.objects.get(name=peo_now.father))
-                check.insert(peo_obj_list.index(peo_now)-1, People.objects.get(name=peo_now.father))
+                peo_obj_list.insert(peo_obj_list.index(peo_now), People.objects.get(name=peo_now.father))
+                check.insert(check.index(peo_now), People.objects.get(name=peo_now.father))
         except:
             pass
         finally:
@@ -479,8 +520,8 @@ def familytree(request, name):
         try:
             People.objects.get(name=peo_now.mother)
             if People.objects.get(name=peo_now.mother) not in check:
-                peo_obj_list.insert(peo_obj_list.index(peo_now)-1, People.objects.get(name=peo_now.mother))
-                check.insert(peo_obj_list.index(peo_now)-1, People.objects.get(name=peo_now.mother))
+                peo_obj_list.insert(peo_obj_list.index(peo_now), People.objects.get(name=peo_now.mother))
+                check.insert(check.index(peo_now), People.objects.get(name=peo_now.mother))
         except:
             pass
         finally:
@@ -532,8 +573,8 @@ def re_familytree(people_obj, path):
     except:
         flag = flag+1
     if flag == 2 and people_obj.father and people_obj.mother:
-        fp.write(people_obj.mother+"(F)\n")
-        fp.write(people_obj.father + "(M)\n")
+        fp.write(people_obj.mother+"(F,id=%s)\n" % "".join(lazy_pinyin(people_obj.mother)).replace(' ', '').replace(".", ''))
+        fp.write(people_obj.father + "(M,id=%s)\n" % "".join(lazy_pinyin(people_obj.father)).replace(' ', '').replace(".", ''))
         fp.write("\t"+people_obj.name+"(id=%d)\n\n" % people_obj.id)
     # 为配偶写txt
     try:
@@ -554,7 +595,7 @@ def re_familytree(people_obj, path):
         if not mate:
             fp.close()
             return [people_obj]
-        fp.write(mate + "\n")
+        fp.write(mate +"(id=%s)" % "".join(lazy_pinyin(people_obj.mate)).replace(' ', '').replace(".", '') + "\n")
 
     # 为自己写txt
     name = people_obj.name
@@ -571,9 +612,15 @@ def re_familytree(people_obj, path):
     couple_obj.append(people_obj)
 
     # 为后代写txt
-    kids_list = set(people_obj.kids)
+    kids_list = set()
     try:
-        kids_list.add(People.objects.get(name=people_obj.mate).kids)
+        for i in People.objects.get(name=people_obj.mate).kids:
+            kids_list.add(i)
+    except:
+        pass
+    try:
+        for i in people_obj.kids:
+            kids_list.add(i)
     except:
         pass
     kids_list = list(kids_list)
@@ -606,7 +653,7 @@ def re_familytree(people_obj, path):
                     fp.write("deathday=%s" % str(People.objects.get(name=kid).death_date)[:-9])
                 fp.write(")\n")
             except:
-                fp.write("\t" + kid + "\n")
+                fp.write("\t" + kid +"(id=%s)" % "".join(lazy_pinyin(kid)).replace(' ', '').replace(".", '') + "\n")
     fp.write("\n")
     fp.close()
     return couple_obj
@@ -621,10 +668,64 @@ def pic_info(request, path):
     context['token_time'] = str(image_obj.token_time).replace('年', '-').replace('月', '-').replace('日', '-').replace(' ', 'T')
     context['info'] = image_obj.info
     context['title'] = image_obj.title
+    count = 0
+    time_range = set()
     for face in face_obj:
         name = face.name.name
         num = face.path[face.path.find('-') + 1:face.path.rfind('.')]
         context['namelist'].append([num, name])
+        located_time = face.name.located_time
+        if located_time:
+            located_time = located_time.split(' ')
+            temp = set()
+            if count == 0:
+                for i in located_time:
+                    count = 1
+                    if not i:
+                        continue
+                    start_time, end_time = i.split('-')
+                    for k in range(eval(start_time), eval(end_time)):
+                        time_range.add(k)
+            else:
+                for i in located_time:
+                    if not i:
+                        continue
+                    start_time, end_time = i.split('-')
+                    for k in range(eval(start_time), eval(end_time)):
+                        temp.add(k)
+                time_range = temp & time_range
+        else:
+            birth = str(face.name.birth_date)[:-9].replace('-', '')
+            death = str(face.name.death_date)[:-9].replace('-', '')
+            temp = set()
+            if birth and death:
+                if count == 0:
+                    count = 1
+                    for k in range(eval(birth), eval(death)):
+                        time_range.add(k)
+                else:
+                    for k in range(eval(birth), eval(death)):
+                        temp.add(k)
+                    time_range = temp & time_range
+
+
+    time_range = list(time_range)
+    time_range.sort()
+    time_out = []
+    start = 0
+    try:
+        for i in range(len(time_range)):
+            if start == 0:
+                start = time_range[i]
+            elif i == len(time_range) - 1 or time_range[i + 1] != time_range[i] + 1:
+                time_out.append([start, time_range[i]+1])
+                start = 0
+            elif time_range[i + 1] == time_range[i] + 1:
+                continue
+    except:
+        pass
+    context['time_range'] = time_out
+
     return render(request, "pic_info.html", context)
 
 
@@ -740,8 +841,10 @@ def recog_again(request, path):
 def upload_again(request):
     if request.method == 'POST':
         name = request.POST["name"]
-        if name=="":
+        if name == "":
             return HttpResponse("补录取消")
+        if name == "random":
+            name = "无名氏"+str(time.time()).replace('.', '-')
         num = request.POST["num"]
         path = request.POST["path"]
         path = path[path.rfind("/")+1:]
@@ -750,7 +853,7 @@ def upload_again(request):
         # return HttpResponseRedirect('/index')
         info = FaceRecognition.dict_add(face_path, name)
         if info == 1:
-            return HttpResponse("补录成功")
+            return HttpResponse(name+"补录成功")
         else:
             return HttpResponse(info)
 
@@ -759,15 +862,22 @@ from random import randrange
 from pyecharts.charts import Graph
 from pyecharts import options as opts
 import json
-def social_graph(request):
-    return render(request, 'social_graph.html')
 
 
-def social_info(request):
+def social_graph(request, name):
+    context = {"name": name}
+    return render(request, 'social_graph.html', context)
+
+
+def social_info(request, person):
     nodes = []
     links = []
     name = []
-    for group_photo in image_db.objects.all():
+    if person:
+        return social_info_person(request, person)
+    else:
+        group_photos = image_db.objects.all()
+    for group_photo in group_photos:
         faces = FaceImage.objects.filter(image=group_photo)
         for face in faces:
             if face.name.name in name:
@@ -785,7 +895,6 @@ def social_info(request):
         for face_i in faces:
             for face_j in faces:
                 links.append({"source": face_i.name.name, "target": face_j.name.name, "value": group_photo.path})
-    print(nodes)
     data = (
         Graph()
             .add("", nodes, links, repulsion=8000, is_draggable=True)
@@ -806,7 +915,6 @@ def social_info_person(request, person):
     nodes = []
     links = []
     name = []
-    FaceImage.objects.filter(name=People.objects.get(name=person))
     for group_photo in FaceImage.objects.filter(name=People.objects.get(name=person)):
         group_photo = group_photo.image
         faces = FaceImage.objects.filter(image=group_photo)
@@ -826,7 +934,6 @@ def social_info_person(request, person):
         for face_i in faces:
             for face_j in faces:
                 links.append({"source": face_i.name.name, "target": face_j.name.name, "value": group_photo.path})
-    print(nodes)
     data = (
         Graph()
             .add("", nodes, links, repulsion=8000, is_draggable=True)

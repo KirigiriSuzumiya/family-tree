@@ -245,7 +245,11 @@
 														});
 													}
 												</script>
-												<p>*社交关系由合照信息联想</p>
+												<p>
+													<span onclick="window.open('/social_graph/{{name}}','_self');" class="main-btn"><a href="">全屏</a>
+													</span>
+													*社交关系由合照信息联想
+												</p>
 											<h2 class="col-md-12 col-xs-12">可能认识的人</h2>
 											    {% for person in known %}
 													<span onclick="window.open('/facelist/{{person}}','_self');" class="main-btn"><a href="">{{person}}</a>
@@ -261,7 +265,7 @@
 		<div class="content fourth-content">
 			<div class="container-fluid">
 				<div class="row mt10">
-					{% for upload_time,path,count,re_path,token_time in facelist %}
+					{% for upload_time,path,count,re_path,token_time,token_age in facelist %}
 					<div class="col-md-3 col-sm-6">
 						<div class="item">
 
@@ -281,7 +285,7 @@
 								<div class="image">
 
 									<img src="{{path}}">
-									<p style="color:white;float:right">拍摄于：{{token_time|date:"Y年m月"|default:"未知"}}</p>
+									<p style="color:white;float:right">拍摄于：{{token_time|date:"Y年m月"|default:"未知"}} &nbsp {{token_age|default:"?"}}岁</p>
 								</div>
 							</div>
 						</div>
@@ -315,7 +319,9 @@
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="last_name" value="{{last_name|default:''}}" placeholder="last name"></h5>
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="xing" value="{{xing|default:''}}" placeholder="中文姓氏"></h5>
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="ming" value="{{ming|default:''}}" placeholder="中文名字"></h5>
-									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="family_name" value="{{family_name|default:''}}" placeholder="父姓" {% if  sex != "female" %}hidden{% endif %}></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="zi" value="{{zi|default:''}}" placeholder="字"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="other_name" value="{{other_name|default:''}}" placeholder="别名"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="family_name" value="{{family_name|default:''}}" placeholder="夫姓" {% if  sex != "female" %}hidden{% endif %}></h5>
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1 weicot_radio">
 										<input class="form-control" style="display:none;float:left" type="radio" name="sex" value="male" id="p_1" {% if  sex == "male" %}checked{% endif %}><label for="p_1" ><i class="fa fa-male"></i>男</label>
 										<input class="form-control" style="display:none;float:right" type="radio" name="sex" value="female" id="p_2"{% if  sex == "female" %}checked{% endif %}><label for="p_2" ><i class="fa fa-female"></i>女</label>
@@ -323,7 +329,11 @@
 
 								</fieldset>
 								<fieldset>
-									<legend><h3 style="color:white">地图标点</h3></legend>
+									<legend><h3 style="color:white">时空信息</h3></legend>
+									<div class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">
+										<h5 class="col-md-12 col-xs-12"><input type="text" name="located_time" value="{{located_time|default:''}}" placeholder="在华时间 输入示例：20220716-20220718 空格分隔两段时间"></h5>
+										<h5 class="col-md-12 col-xs-12"></h5>
+									</div>
 									<div class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">
 										<h5 class="col-md-5 col-xs-5"><input type="text" name="loc1_x" value="{{loc1_x|default:''}}" placeholder="标点1经度"></h5>
 										<h5 class="col-md-5 col-xs-5 col-md-offset-2 col-xs-offset-2"><input type="text" name="loc1_y" value="{{loc1_y|default:''}}" placeholder="标点1纬度"></h5>
@@ -349,7 +359,7 @@
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="mate" value="{{mate|default:''}}" placeholder="伴侣"></h5>
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="father" value="{{father|default:''}}" placeholder="父亲"></h5>
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="mother" value="{{mother|default:''}}" placeholder="母亲"></h5>
-									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="kids" value="{{kids|default:''}}" placeholder="后代,遵循json格式"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="kids" value="{{kids|default:''}}" placeholder="后代,使用英文分号;分隔"></h5>
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="datetime-local" name="birth_date" value="{{birth_date|default:''}}" placeholder="出生日期"></h5>
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="datetime-local" name="death_date" value="{{death_date|default:''}}" placeholder="去世日期"></h5>
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="institute" value="{{institute|default:''}}" placeholder="单位机构"></h5>

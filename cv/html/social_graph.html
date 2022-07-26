@@ -21,7 +21,7 @@
         function fetchData() {
             $.ajax({
                 type: "get",
-                url: "/social_info",
+                url: "/social_info/{{name}}",
                 dataType: 'json',
                 success: function (result) {
                     chart.setOption(result.data);
