@@ -835,7 +835,7 @@ def recog_again(request, path):
     context['path'] = return_dic['path']
     context['xls_path'] = return_dic['path'][:return_dic['path'].rfind('.')] + '.xls'
     context['result'] = return_dic['result']
-    return render(request, 'recognition_result.html', context)
+    return render(request, 'recognition_again.html', context)
 
 
 def upload_again(request):

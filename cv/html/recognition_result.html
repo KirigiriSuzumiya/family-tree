@@ -146,12 +146,7 @@
 							<td><h4>{{forloop.counter}}号人脸</h4></td>
 							<td></td>
 							<td></td>
-							<td>
-								<h4>
-									<a id="{{forloop.counter}}" href="#{{forloop.counter}}" onclick="upload_input({{forloop.counter}},'{% static path%}');">补录(带输入框)>></a>
-									<a id="{{forloop.counter}}r" href="#{{forloop.counter}}" onclick="upload_input_random({{forloop.counter}},'{% static path%}');">补录(随机名字)>></a>
-								</h4>
-							</td>
+							<td></td>
 						</tr>
 							{% for name,score in faceresult %}
 						<tr>
@@ -162,7 +157,6 @@
 								<h4>
 								{% if  name != "未知人脸" %}
 									<a href="/facelist/{{name}}">详情>></a>
-									<a id="{{forloop.parentloop.counter}}" href="#{{forloop.parentloop.counter}}" onclick="upload_again({{forloop.parentloop.counter}},'{{name}}','{% static path%}');">补录>></a>
 								{% endif %}
 								</h4>
 							</td>
