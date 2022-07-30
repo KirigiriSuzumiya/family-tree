@@ -47,6 +47,38 @@
         }
 
     </style>
+	<style>
+    .weicot_radio{
+        margin-top:0.5em;
+        margin-right:0.5em;
+    }
+    .weicot_radio input[type="radio"]{
+        display:none;
+    }
+    .weicot_radio input[type="radio"] + label{
+        padding:0.2em 1em;
+        border:1px solid #CCCCCC;
+      /*  border-radius:0.5em;*/
+        color:#999;
+    }
+    .weicot_radio input[type="radio"]:checked + label {
+        padding: 0.2em 1em;
+        border: 1px solid #3399CC;
+       /* border-radius: 0.5em;*/
+        background: #3399CC;
+        color: #FFFFFF;
+	</style>
+	<script type="text/javascript">
+		function result(){
+			document.getElementById('result').style.display='block';
+			document.getElementById('origin').style.display='none';
+		}
+
+		function origin(){
+			document.getElementById('result').style.display='none';
+			document.getElementById('origin').style.display='block';
+		}
+	</script>
 	<script type="text/javascript">
         function openDialog(){
             document.getElementById('light').style.display='block';
@@ -56,6 +88,7 @@
         }
         openDialog();
     </script>
+
 </head>
 <body>
 <div id="light" class="white_content">
@@ -100,11 +133,16 @@
 <div id="contact">
 	<div class="container">
 		<div class="row">
-			<div class="col-md-offset-1 col-md-10 col-sm-12">
+			<div class="text-center">
 				<h2><i class="fa fa-photo"></i>{{title|default:"照片"}}详情</h2>
+				<div class="center-block text-center weicot_radio" >
+						<input type="radio" name="pic" onclick="origin()" id="p_1"><label for="p_1" >原图</label>
+						<input type="radio" name="pic" onclick="result()" id="p_2" checked><label for="p_2" >标注</label>
+				</div>
 			</div>
 			<div class="col-md-10 col-md-offset-1 col-sm-12 mt30">
-				<a href="{% static path%}" data-lightbox-gallery="portfolio-gallery"><img class="img-responsive" src="{% static path%}" alt="总览图"></a>
+				<a id="result" href="/static/{{path}}" data-lightbox-gallery="portfolio-gallery"><img class="img-responsive" src="/static/{{path}}" alt="总览图"></a>
+				<a id="origin" href="/static/upload/{{path}}" data-lightbox-gallery="portfolio-gallery" style="display:None"><img class="img-responsive" src="/static/upload/{{path}}" alt="原图"></a>
 				<h4 class="col-md-12 col-xs-12">{{path}}基本信息:</h4>
 				<table class="table"><tbody><tr><td></td></tr></tbody></table>
 				<form action="/pic_info_edit/{{path}}" method="post" >
@@ -134,7 +172,7 @@
 					{% endfor %}
 				  </tbody>
 				</table>
-				<a class="btn center-block" href="/recog_again/{{path}}" onclick="openDialog();">合照重识（不会修改数据，仅供比对）</a>
+				<a class="btn center-block" href="/recog_again/{{path}}" onclick="openDialog();">合照重识（提供补录功能）</a>
 			</div>
 		</div>
 	</div>

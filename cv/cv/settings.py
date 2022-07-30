@@ -123,6 +123,7 @@ STATIC_URL = '/static/' # 别名
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "statics"),
     os.path.join(BASE_DIR, "cv", "model_image"),
+    ('upload', os.path.join(BASE_DIR, "upload"))
 ]
 
 # Default primary key field type
