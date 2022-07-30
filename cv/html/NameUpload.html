@@ -26,10 +26,46 @@
         {% endfor %}
     </script>
 	{% endif %}
+	<script type="text/javascript">
+        function openDialog(){
+            document.getElementById('light').style.display='block';
+        }
+        function closeDialog(){
+            document.getElementById('light').style.display='none';
+        }
+        openDialog();
+    </script>
+	<style>
+        .white_content {
+            display: none;
+            position:fixed;
+            top:15%;
+            left:30%;
+            width:40%;
+            padding: 20px;
+            text-align:center;
+            border: 10px solid grey;
+            background-color: black;
+            z-index:1002;
+            overflow: auto;
+			opacity: 80%;
+			color: #fff;
+        }
+        .white_content h3 h4{
+        	color: #fff;
+        }
 
+    </style>
 </head>
 <body>
-
+<div id="light" class="white_content">
+	<button type="button" class="close" aria-hidden="true" style="color:white;" onclick="closeDialog()">
+    &times;
+  	</button>
+	<h3>处理中</h3>
+	<h4 id="info">图像识别中，请耐心等待…………</h4>
+	<img class="img-responsive center-block" src="/static/images/loading.gif" alt="loading">
+</div>
 <!-- navigation -->
 
 	<div class="container">
@@ -66,8 +102,10 @@
 			<div class="col-md-8 col-md-offset-2 col-sm-12 mt30">
 				<a href="{% static total_path%}" data-lightbox-gallery="portfolio-gallery"><img class="img-responsive center-block" src="{% static total_path%}" alt="总览图"></a>
 				<a class="btn center-block" href="/baidu_extract/{{total_path}}">使用百度api重新识别</a>
-				<h4>姓名录入：（若不需要录入请留空）</h4>
-				<h4><a href="pic_info/{{total_path}}">转合照详情>></a></h4>
+				<h4>不清楚照片中的人是谁？试试“家·谱”的合照重识功能！</h4>
+				<div class="mt30">您可以选择前往<a class="btn text-center" href="pic_info/{{total_path}}">合照详情>></a>完善合照信息；</div>
+				<div class="mt30">也可以选择前往<a class="btn text-center" href="/recog_again/{{total_path}}" onclick="openDialog();">合照重识>></a>检索已有人脸库来帮助您完成录入！</div>
+				<h4 class="mt30">姓名录入：（若不需要录入请留空）</h4>
 				<form  name="name_upload_form" method="POST" action="name_upload">
 					{% csrf_token %}
 					<input type="text" name="path_list" value="{{path_list}}" readonly hidden>
