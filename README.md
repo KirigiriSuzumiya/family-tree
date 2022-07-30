@@ -1,7 +1,51 @@
 # family-tree
-家·谱——智能家谱录入查询是一款基于人脸识别与图像标签的在线家谱查询录入系统，提供人脸录入、识别到家谱构建的一站式web服务平台。使用django+python+face_recognition。
+家·谱——智能家谱录入查询是一款基于人脸识别与图像标签的在线家谱查询录入系统，提供人脸录入、识别到家谱构建的一站式web服务平台。使用django+python+face_recognition+BaiduAPI。
 
 review on：http://124.221.104.193/
+
+
+
+## 环境
+
+python3.6及以上
+
+#### windows 配置
+
+```python
+pip install cmake
+pip install dlib
+pip install face_recogniton
+pip install django
+pip install xlwt
+pip install pypinpyin
+pip install pyecharts
+安装 Graphviz
+```
+
+#### linux 配置
+
+```
+sudo apt-get install build-essential cmake
+sudo apt-get install libgtk-3-dev
+sudo apt-get install libboost-all-dev 
+sudo apt-get install graphviz
+pip install dlib -vv
+pip install pandas
+pip install face_recognition
+pip install django
+pip install xlwt	
+pip install pypinpyin
+pip install pyecharts
+```
+
+
+
+## 运行
+
+```
+cd cv
+python manage.py runserver 0.0.0.0:80
+```
 
 
 
@@ -23,7 +67,7 @@ review on：http://124.221.104.193/
 
 这是完成录入姓名后的一个跳转页面，能够方便的跳转到人员的详情页面以编辑和补全信息并使用地图标点与自动家谱构建等功能。
 
-
+<img src="README.assets/image-20220730213624753.png" alt="image-20220730213624753" style="zoom: 25%;" />
 
 #### 2. **人员识别**
 
@@ -37,7 +81,7 @@ review on：http://124.221.104.193/
 
 返回上一步识别的结果，提供识别结果详情页的跳转与识别数据的下载（包括识别结果的可视化图层叠加相片和EXCEL表格）。
 
-
+<img src="README.assets/image-20220730213656426.png" alt="image-20220730213656426" style="zoom:25%;" />
 
 #### 3. **人员列表**
 
@@ -71,61 +115,13 @@ review on：http://124.221.104.193/
 
 提供所有相关信息的编辑与展示功能，包括生卒年月，家族信息，经纬度标记，概述等。
 
-
-
-#### 4. **管理员站点**
-
-Django原生后台数据库管理，供管理员用户批量修改数据使用
+![家·谱——华惠成详情 - 个人 - Microsoft Edge 2022-07-30 21-37-57 00_00_00-00_00_30](README.assets/家·谱——华惠成详情 - 个人 - Microsoft Edge 2022-07-30 21-37-57 00_00_00-00_00_30.gif)
 
 
 
-#### 5. 用户登陆与注册
+#### 4. 其他支持功能
 
-用户登陆与注册所需的必要功能组件。
-
-
-
-#### 6. 页尾与登陆状态
-
-在整个网页的尾部提供必要的信息展示与跳转
-
-
-
-## 环境
-
-python3.6及以上
-
-#### windows 配置
-
-```python
-pip install cmake
-pip install dlib
-pip install face_recogniton
-pip install django
-pip install xlwt
-安装 Graphviz
-```
-
-#### linux 配置
-
-```
-sudo apt-get install build-essential cmake
-sudo apt-get install libgtk-3-dev
-sudo apt-get install libboost-all-dev 
-sudo apt-get install graphviz
-pip install dlib -vv
-pip install pandas
-pip install face_recognition
-pip install django
-pip install xlwt	
-```
-
-
-
-## 运行
-
-```
-cd cv
-python manage.py runserver 0.0.0.0:80
-```
+- 用户登录注册
+- 后台数据管理
+- ……
 
