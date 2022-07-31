@@ -51,17 +51,53 @@ def face_matchng(path,request,tolerance=1):
     else:
         return 0
 
+
+    result = []
+    info = "正在分割人脸"
+    try:    # 使用百度api分割人脸
+        try:
+            if request.POST["use_baidu"] == "yes":
+                pass
+            else:
+                raise "NotUsingBaidu"
+        except:
+            image_obj = image_db.objects.get(path=os.path.basename(img_path))
+            if not image_obj.use_baidu:
+                raise "NotUsingBaidu"
+        url = 'http://124.221.104.193/static/upload/' + os.path.basename(img_path)
+        print("地址：", url)
+        # 设置请求包体
+        request_url = "https://aip.baidubce.com/rest/2.0/face/v3/detect"
+        request_url = request_url + "?access_token=" + access_token
+        headers = {'content-type': 'application/json'}
+        result = []
+        params = '{"image":"%s","image_type":"URL","max_face_num":100}' % url
+        response = requests.post(request_url, data=params, headers=headers)
+        print(response.json())
+        if response.json()["error_msg"] != "SUCCESS":
+            raise "baiduExtractError"
+        facelist = response.json()["result"]["face_list"]
+        origin_locations = []
+        locations = []
+        for face in facelist:
+            origin_locations.append(face["location"])
+        face_list = origin_locations
+        for i in range(len(face_list)):
+            box = (face_list[i]["left"], face_list[i]["top"], face_list[i]["left"] + face_list[i]["width"],
+                   face_list[i]["top"] + face_list[i]["height"])
+            locations.append([box[1], box[2], box[3], box[0]])
+        print("使用百度api分割人脸")
+    except: # 使用face_recognition分割人脸
+        img = face_recognition.load_image_file(img_path)
+        locations = face_recognition.face_locations(img)
+        print("使用face_recognition分割人脸")
+    origin = Image.open(img_path)
+    time_now = os.path.basename(img_path)[:os.path.basename(img_path).rfind('.')]
+    file_type = os.path.basename(img_path)[os.path.basename(img_path).rfind('.'):]
     # 设置请求包体
     request_url = "https://aip.baidubce.com/rest/2.0/face/v3/multi-search"
     request_url = request_url + "?access_token=" + access_token
     headers = {'content-type': 'application/json'}
-    result = []
-    info = "正在分割人脸"
-    img = face_recognition.load_image_file(img_path)
-    origin = Image.open(img_path)
-    locations = face_recognition.face_locations(img)
-    time_now = os.path.basename(img_path)[:os.path.basename(img_path).rfind('.')]
-    file_type = os.path.basename(img_path)[os.path.basename(img_path).rfind('.'):]
     try:
         image_obj = image_db.objects.get(path=os.path.basename(img_path))
         image_obj.count = len(locations)

@@ -86,6 +86,7 @@ def baidu_extractor(img_path):
     img_path = os.path.join(BASE_DIR, 'statics', 'temp_image', os.path.split(img_path)[-1])
     image = image_db.objects.get(path=os.path.split(img_path)[-1])
     image.count = len(locations)
+    image.use_baidu = True
     image.save()
     # 保存各个人头大头贴
     count = 1

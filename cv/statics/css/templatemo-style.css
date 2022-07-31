@@ -98,6 +98,13 @@ img {
 .navbar-default .navbar-nav > li > a:hover,
 .navbar-default .navbar-nav > li > a:focus {
   color: #ffa500;
+  background-color: #e7e7e7;
+}
+.navbar-default .navbar-nav>.open>a, .navbar-default .navbar-nav>.open>a:focus, .navbar-default .navbar-nav>.open>a:hover{
+  color: #ffa500;
+}
+.dropdown-menu>li>a:focus, .dropdown-menu>li>a:hover{
+  color: #ffa500;
 }
 .navbar-default .navbar-nav > .active > a,
 .navbar-default .navbar-nav > .active > a:hover,

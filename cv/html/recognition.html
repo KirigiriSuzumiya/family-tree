@@ -34,12 +34,29 @@
             overflow: auto;
 			opacity: 80%;
         }
-        .white_content h3,h4{
-        	color: #fff;
-        }
 
     </style>
-
+	<style>
+    .weicot_radio{
+        margin-top:0.5em;
+        margin-right:0.5em;
+    }
+    .weicot_radio input[type="radio"]{
+        display:none;
+    }
+    .weicot_radio input[type="radio"] + label{
+        padding:0.2em 1em;
+        border:1px solid #CCCCCC;
+      /*  border-radius:0.5em;*/
+        color:#999;
+    }
+    .weicot_radio input[type="radio"]:checked + label {
+        padding: 0.2em 1em;
+        border: 1px solid #3399CC;
+       /* border-radius: 0.5em;*/
+        background: #3399CC;
+        color: #FFFFFF;
+	</style>
 	{% if messages %}
 	<script>
         {% for msg in messages %}
@@ -96,17 +113,21 @@
 		<div class="collapse navbar-collapse">
 			<ul class="nav navbar-nav navbar-right">
 				<li><a href="/index">主页</a></li>
-				<li><a href="/about">关于我们</a></li>
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+						更多功能
+						<b class="caret"></b>
+					</a>
+					<ul class="dropdown-menu" style="background: #babfa9;color: #273a17;">
+						<li><a href="/user">用户登录</a></li>
+						<li><a href="/faceupload">人员录入</a></li>
+						<li><a href="/recognition">人员识别</a></li>
+						<li><a href="/namelist">人员列表</a></li>
+						<li><a href="/about">关于我们</a></li>
+						<li><a href="/admin">管理员站点</a></li>
+					</ul>
+				</li>
 			</ul>
-		</div>
-	</div>
-</div>
-
-<!-- contact header section-->
-<div id="contact-header">
-	<div class="container">
-		<div class="row">
-			<div class="col-md-12 col-sm-12"></div>
 		</div>
 	</div>
 </div>
@@ -115,15 +136,20 @@
 <div id="contact">
 	<div class="container">
 		<div class="row">
-			<div class="col-md-offset-2 col-md-8 col-sm-12">
+			<div class="col-md-offset-2 col-md-8 col-sm-12 text-center">
 				<h2><i class="fa fa-search"></i>人员识别</h2>
-				<h3 class="col-md-4 col-sm-4 col-md-offset-3"><i class="fa fa-spinner"></i>上传相片</h3>
-				<h3 class="col-md-4 col-sm-4" style="color:grey;"><i class="fa fa-arrow-right"></i>查看结果</h3>
+				<h3 class="col-md-6 col-sm-6"><i class="fa fa-spinner"></i>上传相片</h3>
+				<h3 class="col-md-6 col-sm-6" style="color:grey;"><i class="fa fa-arrow-right"></i>查看结果</h3>
 			</div>
 			<div class="col-md-10 col-md-offset-1 col-sm-12 mt30">
 
 				<form name="pic_upload_form" method="POST" action="recognition_upload" enctype="multipart/form-data" onsubmit="setInterval(function(){openDialog()},1000);">
 					{% csrf_token %}
+					<h4>识别方式</h4>
+					<div class="center-block text-center weicot_radio" >
+						<input type="radio" name="use_baidu" id="p_1" value="no" checked ><label for="p_1" >本地库（无大小限制）</label>
+						<input type="radio" name="use_baidu" id="p_2" value="yes"><label for="p_2" >百度API（限制5MB）</label>
+					</div>
 					<h4>严谨度：（推荐默认值，越小越严格1~10）</h4>
 					<input type="number" name="tolerance" class="form-control" min="1" max="10" value="7" required="required">
 					<h4>本地文件上传</h4>
@@ -185,7 +211,6 @@
 	<script src="/static/js/jquery.js"></script>
 	<script src="/static/js/bootstrap.min.js"></script>
 	<script src="/static/js/nivo-lightbox.min.js"></script>
-	<script src="/static/js/custom.js"></script>
 	<script src="/static/js/fileinput.js"></script>
 	<script src="/static/js/zh.js"></script>
 	<script src="/static/js/theme.js"></script>

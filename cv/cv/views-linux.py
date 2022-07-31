@@ -668,6 +668,7 @@ def pic_info(request, path):
     context['token_time'] = str(image_obj.token_time).replace('年', '-').replace('月', '-').replace('日', '-').replace(' ', 'T')
     context['info'] = image_obj.info
     context['title'] = image_obj.title
+    context["use_baidu"] = image_obj.use_baidu
     count = 0
     time_range = set()
     for face in face_obj:

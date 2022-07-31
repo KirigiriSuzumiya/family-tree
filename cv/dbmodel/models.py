@@ -48,6 +48,7 @@ class Image(models.Model):
     info = models.CharField(max_length=1000, blank=True, null=True)
     title = models.CharField(max_length=200, blank=True, null=True)
     count = models.IntegerField(blank=True, null=True)
+    use_baidu = models.BooleanField(default=False)
     def __str__(self):
         return self.path
 
