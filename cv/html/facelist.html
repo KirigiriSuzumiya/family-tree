@@ -62,6 +62,22 @@
 				}
 				})
         }
+        function search(){
+            var csrf = $('input[name="csrfmiddlewaretoken"]').val();  //增加csrf变量将在data中传参以避免403错误
+        	// 朝后端发送ajax请求
+				$.ajax({
+				// 1.指定朝哪个后端发送ajax请求
+				url:'/name2id', //不写就是朝当前地址提交【与form表单的action参数相同】
+				// 2.请求方式
+				type:'post',  // 不指定默认就是get，都是小写
+				// 3.数据
+				data:{'csrfmiddlewaretoken': csrf,'name':document.getElementById('name2id').value},
+				// 4.回调函数:当后端给你返回结果的时候会自动触发，args接受后端的返回结果
+				success:function (args) {
+					document.getElementById('search_result').innerHTML=args;
+				}
+				})
+        }
     </script>
 
 </head>
@@ -203,8 +219,8 @@
 								<div class="row">
 										<div class="right-content">
 											<h2 class="col-md-12 col-xs-12">家族成员</h2>
-											    {% for person in family %}
-													<span onclick="window.open('/facelist/{{person}}','_self');" class="main-btn"><a href="">{{person}}</a>
+											    {% for id,person in family %}
+													<span onclick="window.open('/facelist/{{id}}','_self');" class="main-btn"><a href="">{{person}}</a>
 													</span>
 												{% endfor %}
 
@@ -251,8 +267,8 @@
 													*社交关系由合照信息联想
 												</p>
 											<h2 class="col-md-12 col-xs-12">可能认识的人</h2>
-											    {% for person in known %}
-													<span onclick="window.open('/facelist/{{person}}','_self');" class="main-btn"><a href="">{{person}}</a>
+											    {% for id,person in known %}
+													<span onclick="window.open('/facelist/{{id}}','_self');" class="main-btn"><a href="">{{person}}</a>
 													</span>
 												{% endfor %}
 
@@ -303,6 +319,20 @@
 		<div class="slide" id="6">
 			<div class="content fifth-content">
 				<div class="container-fluid" style="color:white">
+					<div class="row" style="float:right;">
+						<span class="col-md-12 col-xs-12">
+							<input class="col-md-5 col-xs-5" type="text" id="name2id" placeholder="输入姓名以检索id" style="width:50%">
+							<div class="col-md-5 col-xs-5" style="width:50%">
+								<button class="btn dropdown-toggle" id="dropdownMenu1" data-toggle="dropdown" onclick="search();">检索
+									<span class="caret"></span>
+								</button>
+								<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1" id="search_result">
+								</ul>
+							</div>
+						</span>
+
+					</div>
+
 					<form name='people_edit-form' method='post' action="/face_edit/{{name}}">
 						{% csrf_token %}
 						<div class="  third-content">

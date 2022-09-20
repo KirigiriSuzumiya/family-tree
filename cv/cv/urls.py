@@ -41,13 +41,15 @@ urlpatterns = [
     re_path(r'pic_info_edit/(.*)$', login_required(views.pic_info_edit)),
     re_path(r'recog_again/(.*)$', login_required(views.recog_again)),
     path(r'demo', views.demo),
-    path(r'baidu', login_required(views.baidu_upload)),
+    # path(r'baidu', login_required(views.baidu_upload)),
     path("upload_again", login_required(views.upload_again)),
     re_path("baidu_extract/(.*)$", login_required(views.baidu_extract)),
     re_path("social_graph/(.*)$", views.social_graph),
     re_path("social_info/(.*)$", views.social_info),
     re_path("social_info_person/(.*)$", views.social_info_person),
     path("ar", views_ar.ar),
+    path("data_transfer", views.data_transfer),
+    path("name2id", views.name2id_researcher),
 ]
 
 

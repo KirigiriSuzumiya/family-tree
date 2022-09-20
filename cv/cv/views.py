@@ -218,7 +218,7 @@ def namelist(request):
             pic_obj = 'none'
             upload_time = 'none'
             path = ''
-        namelist.append([name, upload_time, path, pic_obj, count,en_name])
+        namelist.append([name, upload_time, path, pic_obj, count, en_name, i.id])
         count = (count + 1) % 4
     namelist.sort(key=lambda char: lazy_pinyin(char[0])[0][0])
     count = 1
@@ -258,11 +258,12 @@ def namelist(request):
     return render(request, 'namelist.html', context)
 
 
-def facelist(request, name):
+def facelist(request, id):
     context = {}
+    name_obj = People.objects.filter(id=id)[0]
+    name = name_obj.name
     context['name'] = name
     context['facelist'] = []
-    name_obj = People.objects.filter(name=name)[0]
     context['first_name'] = name_obj.first_name
     context['middle_name'] = name_obj.middle_name
     context['last_name'] = name_obj.last_name
@@ -280,7 +281,7 @@ def facelist(request, name):
     context['father'] = name_obj.father
     context['mother'] = name_obj.mother
     if name_obj.kids:
-        context['kids'] = ';'.join(name_obj.kids)
+        context['kids'] = str(name_obj.kids)
     else:
         context['kids'] = ''
     context['info'] = name_obj.info
@@ -309,20 +310,20 @@ def facelist(request, name):
         except:
             token_age = None
         context['facelist'].append([upload_time, path, count, re_path, token_time, token_age])
-
-    context["familytreepath"], family = familytree(request, name)["path"], familytree(request, name)["check"]
+    tree_function_re = familytree(request, id)
+    context["familytreepath"], family = tree_function_re["path"], tree_function_re["check"]
     for i in family:
-        context["family"].append(i.name)
+        context["family"].append([i.id, i.name])
     context["known"]=[]
-    FaceImage.objects.filter(name=People.objects.get(name=name))
-    for group_photo in FaceImage.objects.filter(name=People.objects.get(name=name)):
+    FaceImage.objects.filter(name=People.objects.get(id=id))
+    for group_photo in FaceImage.objects.filter(name=People.objects.get(id=id)):
         group_photo = group_photo.image
         faces = FaceImage.objects.filter(image=group_photo)
         for face in faces:
-            if face.name.name in context["known"]:
+            if [face.name.id, face.name.name] in context["known"]:
                 continue
             else:
-                context["known"].append(face.name.name)
+                context["known"].append([face.name.id, face.name.name])
     return render(request, 'facelist.html', context)
 
 
@@ -348,7 +349,7 @@ def face_edit(request, re_name):
     people_obj.father = request.POST['father']
     people_obj.mother = request.POST['mother']
     try:
-        people_obj.kids = [i for i in request.POST['kids'].split(';') if i != '']
+        people_obj.kids = [i for i in request.POST['kids'].split(' ') if i != '']
     except:
         people_obj.kids = []
 
@@ -471,8 +472,8 @@ def edit_pic(request, path):
     return HttpResponseRedirect("/namelist")
 
 
-def familytree(request, name):
-    people_obj = People.objects.get(name=name)
+def familytree(request, id):
+    people_obj = People.objects.get(id=id)
     peo_obj_list = [people_obj]
     path = os.path.join(BASE_DIR, 'statics', 'temp_image', str(time.time()) + '.txt')
     fp = open(path, "w+", encoding="utf-8")
@@ -488,10 +489,10 @@ def familytree(request, name):
         if kids_list:
             for kid in kids_list:
                 try:
-                    People.objects.get(name=kid)
-                    if People.objects.get(name=kid) not in check:
-                        peo_obj_list.insert(peo_obj_list.index(peo_now)+1, People.objects.get(name=kid))
-                        check.insert(check.index(peo_now)+1, People.objects.get(name=kid))
+                    People.objects.get(id=kid)
+                    if People.objects.get(id=kid) not in check:
+                        peo_obj_list.insert(peo_obj_list.index(peo_now)+1, People.objects.get(id=kid))
+                        check.insert(check.index(peo_now)+1, People.objects.get(id=kid))
                 except:
                     pass
                 finally:
@@ -507,20 +508,20 @@ def familytree(request, name):
         #     pass
         # 将父亲加入队列
         try:
-            People.objects.get(name=peo_now.father)
-            if People.objects.get(name=peo_now.father) not in check:
-                peo_obj_list.insert(peo_obj_list.index(peo_now), People.objects.get(name=peo_now.father))
-                check.insert(check.index(peo_now), People.objects.get(name=peo_now.father))
+            People.objects.get(id=peo_now.father)
+            if People.objects.get(id=peo_now.father) not in check:
+                peo_obj_list.insert(peo_obj_list.index(peo_now), People.objects.get(id=peo_now.father))
+                check.insert(check.index(peo_now), People.objects.get(id=peo_now.father))
         except:
             pass
         finally:
             pass
         # 将母亲加入队列
         try:
-            People.objects.get(name=peo_now.mother)
-            if People.objects.get(name=peo_now.mother) not in check:
-                peo_obj_list.insert(peo_obj_list.index(peo_now), People.objects.get(name=peo_now.mother))
-                check.insert(check.index(peo_now), People.objects.get(name=peo_now.mother))
+            People.objects.get(id=peo_now.mother)
+            if People.objects.get(id=peo_now.mother) not in check:
+                peo_obj_list.insert(peo_obj_list.index(peo_now), People.objects.get(id=peo_now.mother))
+                check.insert(check.index(peo_now), People.objects.get(id=peo_now.mother))
         except:
             pass
         finally:
@@ -551,7 +552,7 @@ def familytree(request, name):
     subprocess.run(shell, shell=True)
     os.remove(gra_path)
     context = {}
-    context["name"] = name
+    context["name"] = people_obj.name
     context["path"] = "temp_image/" + os.path.basename(gra_path) + ".png"
     context["check"] = list(written)
     return context
@@ -562,22 +563,24 @@ def re_familytree(people_obj, path):
     fp = open(path, 'a', encoding="utf-8")
     couple_obj = []
     # 为无对象父母写txt
-    flag = 0
-    try:
-        father = People.objects.get(name=people_obj.father)
-    except:
-        flag=flag+1
-    try:
-        father = People.objects.get(name=people_obj.mother)
-    except:
-        flag = flag+1
-    if flag == 2 and people_obj.father and people_obj.mother:
-        fp.write(people_obj.mother+"(F,id=%s)\n" % "".join(lazy_pinyin(people_obj.mother)).replace(' ', '').replace(".", ''))
-        fp.write(people_obj.father + "(M,id=%s)\n" % "".join(lazy_pinyin(people_obj.father)).replace(' ', '').replace(".", ''))
-        fp.write("\t"+people_obj.name+"(id=%d)\n\n" % people_obj.id)
+    # flag = 0
+    # try:
+    #     father = People.objects.get(id=people_obj.father.mate)
+    # except:
+    #     flag = flag+1
+    # try:
+    #     mother = People.objects.get(id=people_obj.mother.mate)
+    # except:
+    #     flag = flag+1
+    # if flag == 2 and people_obj.father and people_obj.mother:
+    #     fp.write(People.objects.get(id=people_obj.mother).name + "(F,id=%s)\n" % str(people_obj.mother))
+    #     fp.write(People.objects.get(id=people_obj.father).name + "(M,id=%s)\n" % str(people_obj.father))
+    #     fp.write("\t"+people_obj.name+"(id=%d)\n\n" % people_obj.id)
+    #     couple_obj.append(People.objects.get(id=people_obj.mother))
+    #     couple_obj.append(People.objects.get(id=people_obj.father))
     # 为配偶写txt
     try:
-        mate = People.objects.get(name=people_obj.mate)
+        mate = People.objects.get(id=people_obj.mate)
         fp.write(mate.name + "(id=%d," % mate.id)
         if mate.sex == "female":
             fp.write("F,")
@@ -613,7 +616,7 @@ def re_familytree(people_obj, path):
     # 为后代写txt
     kids_list = set()
     try:
-        for i in People.objects.get(name=people_obj.mate).kids:
+        for i in People.objects.get(id=people_obj.mate).kids:
             kids_list.add(i)
     except:
         pass
@@ -628,31 +631,31 @@ def re_familytree(people_obj, path):
             kid = kids_list[i]
             date = ""
             try:
-                kid_obj = People.objects.get(name=kid)
+                kid_obj = People.objects.get(id=kid)
                 date = str(kid_obj.birth_date)
             except:
                 pass
-            kids_list[i] = (kid, date)
-    kids_list.sort(key= lambda x:x[1])
+            kids_list[i] = (kid_obj.name, date, kid)
+    kids_list.sort(key=lambda x:x[1])
     if kids_list:
         for kid_tuple in kids_list:
-            kid = kid_tuple[0]
+            kid = kid_tuple[2]
             if not kid:
                 continue
             try:
-                People.objects.get(name=kid)
-                fp.write("\t" + kid + "(id=%d," % People.objects.get(name=kid).id)
-                if People.objects.get(name=kid).sex == "female":
+                People.objects.get(id=kid)
+                fp.write("\t" + kid_tuple[0] + "(id=%d," % People.objects.get(id=kid).id)
+                if People.objects.get(id=kid).sex == "female":
                     fp.write("F,")
-                if People.objects.get(name=kid).sex == "male":
+                if People.objects.get(id=kid).sex == "male":
                     fp.write("M,")
-                if People.objects.get(name=kid).birth_date:
-                    fp.write("birthday=%s," % str(People.objects.get(name=kid).birth_date)[:-9])
-                if People.objects.get(name=kid).death_date:
-                    fp.write("deathday=%s" % str(People.objects.get(name=kid).death_date)[:-9])
+                if People.objects.get(id=kid).birth_date:
+                    fp.write("birthday=%s," % str(People.objects.get(id=kid).birth_date)[:-9])
+                if People.objects.get(id=kid).death_date:
+                    fp.write("deathday=%s" % str(People.objects.get(id=kid).death_date)[:-9])
                 fp.write(")\n")
             except:
-                fp.write("\t" + kid +"(id=%s)" % "".join(lazy_pinyin(kid)).replace(' ', '').replace(".", '') + "\n")
+                fp.write("\t" + kid_tuple[0] + "(id=%s)" % "".join(lazy_pinyin(kid)).replace(' ', '').replace(".", '') + "\n")
     fp.write("\n")
     fp.close()
     return couple_obj
@@ -858,6 +861,19 @@ def upload_again(request):
             return HttpResponse(info)
 
 
+def name2id_researcher(request):
+    result_list = ""
+    name = request.POST["name"]
+    peo_objs = People.objects.filter(Q(name__icontains=name) |
+                                    Q(first_name__icontains=name) |
+                                    Q(middle_name__icontains=name) |
+                                    Q(last_name__icontains=name)).distinct()
+    for peo in peo_objs:
+        result_list += r'<li role="presentation"><a role="menuitem" tabindex="-1" href="/facelist/%d">%d：%s</a></li>' \
+                       % (peo.id, peo.id, peo.name)
+    return JsonResponse(result_list, safe=False)
+
+
 from random import randrange
 from pyecharts.charts import Graph
 from pyecharts import options as opts
@@ -947,3 +963,64 @@ def social_info_person(request, person):
         "data": data,
     }
     return JsonResponse(data)
+
+
+def data_transfer(request):
+    for i in People.objects.all():
+        if i.mate:
+            try:
+                mate = People.objects.filter(name=i.mate)[0]
+                i.mate = mate.id
+                i.save()
+            except:
+                try:
+                    int(i.mate)
+                except:
+                    new_obj = People(name=i.mate)
+                    new_obj.save()
+                    i.mate = new_obj.id
+                    i.save()
+
+        if i.father:
+            try:
+                father = People.objects.filter(name=i.father)[0]
+                i.father = father.id
+                i.save()
+            except:
+                try:
+                    int(i.father)
+                except:
+                    new_obj = People(name=i.father)
+                    new_obj.save()
+                    i.father = new_obj.id
+                    i.save()
+        if i.mother:
+            try:
+                mother = People.objects.filter(name=i.mother)[0]
+                i.mother = mother.id
+                i.save()
+            except:
+                try:
+                    int(i.mother)
+                except:
+                    new_obj = People(name=i.mother)
+                    new_obj.save()
+                    i.mother = new_obj.id
+                    i.save()
+        if i.kids:
+            temp_list = []
+            for kid in i.kids:
+                try:
+                    temp = People.objects.filter(name=kid)[0]
+                    temp_list.append(temp.id)
+                except:
+                    try:
+                        int(kid)
+                        temp_list.append(int(kid))
+                    except:
+                        new_obj = People(name=kid)
+                        new_obj.save()
+                        temp_list.append(new_obj.id)
+            i.kids = temp_list
+            i.save()
+    return HttpResponse("数据转换完成")
