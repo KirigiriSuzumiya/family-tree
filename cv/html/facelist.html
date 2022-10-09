@@ -15,7 +15,7 @@
 	<link rel="stylesheet" href="/static/facelist/css/light-box.css">
 	<link rel="stylesheet" href="/static/facelist/css/templatemo-main.css">
 	<script src="https://cdn.bootcss.com/jquery/3.0.0/jquery.min.js"></script>
-	<script type="text/javascript" src="https://assets.pyecharts.org/assets/echarts.min.js"></script>
+	<script type="text/javascript" src="/static/js/echarts.min.js"></script>
 	<style>
     .weicot_radio{
         float:left;
@@ -75,6 +75,22 @@
 				// 4.回调函数:当后端给你返回结果的时候会自动触发，args接受后端的返回结果
 				success:function (args) {
 					document.getElementById('search_result').innerHTML=args;
+				}
+				})
+        }
+        function peo_obj_ini(){
+            var csrf = $('input[name="csrfmiddlewaretoken"]').val();  //增加csrf变量将在data中传参以避免403错误
+        	// 朝后端发送ajax请求
+				$.ajax({
+				// 1.指定朝哪个后端发送ajax请求
+				url:'/peo_obj_ini', //不写就是朝当前地址提交【与form表单的action参数相同】
+				// 2.请求方式
+				type:'post',  // 不指定默认就是get，都是小写
+				// 3.数据
+				data:{'csrfmiddlewaretoken': csrf,'name':document.getElementById('new_name').value},
+				// 4.回调函数:当后端给你返回结果的时候会自动触发，args接受后端的返回结果
+				success:function (args) {
+					document.getElementById('id_return').innerHTML=args;
 				}
 				})
         }
@@ -319,21 +335,22 @@
 		<div class="slide" id="6">
 			<div class="content fifth-content">
 				<div class="container-fluid" style="color:white">
-					<div class="row" style="float:right;">
-						<span class="col-md-12 col-xs-12">
-							<input class="col-md-5 col-xs-5" type="text" id="name2id" placeholder="输入姓名以检索id" style="width:50%">
-							<div class="col-md-5 col-xs-5" style="width:50%">
+					<div class="col-md-8 col-md-offset-2">
+							<input class="col-md-5 col-xs-5" type="text" id="new_name" placeholder="输入姓名以新建" style="width:25%">
+							<div class="col-md-5 col-xs-5" style="width:25%">
+								<button class="btn" onclick="peo_obj_ini();" id="id_return">新建</button>
+							</div>
+							<input class="col-md-5 col-xs-5" type="text" id="name2id" placeholder="输入姓名以检索id" style="width:25%">
+							<div class="col-md-5 col-xs-5" style="width:25%">
 								<button class="btn dropdown-toggle" id="dropdownMenu1" data-toggle="dropdown" onclick="search();">检索
 									<span class="caret"></span>
 								</button>
 								<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1" id="search_result">
 								</ul>
 							</div>
-						</span>
-
 					</div>
 
-					<form name='people_edit-form' method='post' action="/face_edit/{{name}}">
+					<form name='people_edit-form' method='post' action="/face_edit/{{id}}">
 						{% csrf_token %}
 						<div class="  third-content">
 							<h2 class="col-md-12"><i class="fa fa-pencil"></i>{{name}}编辑</h2>
@@ -389,7 +406,7 @@
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="mate" value="{{mate|default:''}}" placeholder="伴侣"></h5>
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="father" value="{{father|default:''}}" placeholder="父亲"></h5>
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="mother" value="{{mother|default:''}}" placeholder="母亲"></h5>
-									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="kids" value="{{kids|default:''}}" placeholder="后代,使用英文分号;分隔"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="kids" value="{{kids|default:''}}" placeholder="后代,格式：[id1,id2,id3]"></h5>
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="datetime-local" name="birth_date" value="{{birth_date|default:''}}" placeholder="出生日期"></h5>
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="datetime-local" name="death_date" value="{{death_date|default:''}}" placeholder="去世日期"></h5>
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="institute" value="{{institute|default:''}}" placeholder="单位机构"></h5>

@@ -155,7 +155,7 @@
 								</h4>
 							</td>
 						</tr>
-							{% for name,score in faceresult %}
+							{% for name,id,score in faceresult %}
 						<tr>
 							<td><h4>&nbsp</h4></td>
 							<td><h4>{{name|default:"未知"}}</h4></td>
@@ -163,8 +163,8 @@
 							<td>
 								<h4>
 								{% if  name != "未知人脸" %}
-									<a href="/facelist/{{name}}">详情>></a>
-									<a id="{{forloop.parentloop.counter}}" href="#{{forloop.parentloop.counter}}" onclick="upload_again({{forloop.parentloop.counter}},'{{name}}','{% static path%}');">补录>></a>
+									<a href="/facelist/{{id}}">详情>></a>
+									<a id="{{forloop.parentloop.counter}}" href="#{{forloop.parentloop.counter}}" onclick="upload_again({{forloop.parentloop.counter}},{{id}},'{% static path%}');">补录>></a>
 								{% endif %}
 								</h4>
 							</td>

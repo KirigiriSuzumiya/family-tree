@@ -218,7 +218,7 @@ def namelist(request):
         else:
             pic_obj = 'none'
             upload_time = 'none'
-            path = ''
+            path = '/static/unknown.jpeg'
         namelist.append([name, upload_time, path, pic_obj, count, en_name, i.id])
         count = (count + 1) % 4
     namelist.sort(key=lambda char: lazy_pinyin(char[0])[0][0])
@@ -263,6 +263,7 @@ def facelist(request, id):
     context = {}
     name_obj = People.objects.filter(id=id)[0]
     name = name_obj.name
+    context['id'] = id
     context['name'] = name
     context['facelist'] = []
     context['first_name'] = name_obj.first_name
@@ -298,7 +299,10 @@ def facelist(request, id):
     context['institute'] = name_obj.institute
     context['family'] = []
     face_obj_list = FaceImage.objects.filter(name=name_obj).order_by("-image__token_time")
-    context['first_pic'] = '/static/' + face_obj_list[0].path
+    try:
+        context['first_pic'] = '/static/' + face_obj_list[0].path
+    except:
+        context['first_pic'] = '/static/unknown.jpeg'
     count = 0
     for face_obj in face_obj_list:
         path = '/static/' + face_obj.path
@@ -329,7 +333,7 @@ def facelist(request, id):
 
 
 def face_edit(request, re_name):
-    people_obj = People.objects.get(name=re_name)
+    people_obj = People.objects.get(id=re_name)
     people_obj.name = request.POST['name'].strip()
     people_obj.first_name = request.POST['first_name'].strip()
     people_obj.middle_name = request.POST['middle_name'].strip()
@@ -350,9 +354,10 @@ def face_edit(request, re_name):
     people_obj.father = request.POST['father']
     people_obj.mother = request.POST['mother']
     try:
-        people_obj.kids = [i for i in request.POST['kids'].split(' ') if i != '']
+        people_obj.kids = eval(request.POST['kids'])
     except:
-        people_obj.kids = []
+        messages.error(request, "子辈输入格式有误，修改失败")
+        return HttpResponseRedirect("/facelist/%s" % people_obj.id)
 
     people_obj.info = request.POST['info']
     people_obj.loc1_x = request.POST['loc1_x']
@@ -395,8 +400,8 @@ def face_edit(request, re_name):
                 num = peo.kids.index(re_name)
                 peo.kids[num] = request.POST['name'].strip()
                 peo.save()
-    messages.error(request, re_name + "已修改")
-    return HttpResponseRedirect("/facelist/%s" % people_obj.name)
+    messages.error(request, people_obj.name + "已修改")
+    return HttpResponseRedirect("/facelist/%s" % people_obj.id)
 
 
 def face_edit_info(request):
@@ -677,7 +682,8 @@ def pic_info(request, path):
     for face in face_obj:
         name = face.name.name
         num = face.path[face.path.find('-') + 1:face.path.rfind('.')]
-        context['namelist'].append([num, name])
+        id = face.name.id
+        context['namelist'].append([num, name, id])
         located_time = face.name.located_time
         if located_time:
             located_time = located_time.split(' ')
@@ -855,7 +861,10 @@ def upload_again(request):
         face_path = os.path.join(BASE_DIR, "statics", "temp_image",
                                  path[0:path.rfind('.')] + '-' + str(num) + path[path.rfind("."):])
         # return HttpResponseRedirect('/index')
-        info = FaceRecognition.dict_add(face_path, name)
+        try:
+            info = FaceRecognition.dict_add_id(face_path, name)
+        except:
+            info = FaceRecognition.dict_add(face_path, name)
         if info == 1:
             return HttpResponse(name+"补录成功")
         else:
@@ -873,6 +882,13 @@ def name2id_researcher(request):
         result_list += r'<li role="presentation"><a role="menuitem" tabindex="-1" href="/facelist/%d">%d：%s</a></li>' \
                        % (peo.id, peo.id, peo.name)
     return JsonResponse(result_list, safe=False)
+
+
+def peo_obj_ini(request):
+    name = request.POST["name"]
+    peo_obj = People(name=name)
+    peo_obj.save()
+    return JsonResponse(peo_obj.id, safe=False)
 
 
 from random import randrange

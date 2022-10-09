@@ -48,8 +48,9 @@ urlpatterns = [
     re_path("social_info/(.*)$", views.social_info),
     re_path("social_info_person/(.*)$", views.social_info_person),
     path("ar", views_ar.ar),
-    path("data_transfer", views.data_transfer),
+    # path("data_transfer", views.data_transfer),
     path("name2id", views.name2id_researcher),
+    path("peo_obj_ini", views.peo_obj_ini),
 ]
 
 

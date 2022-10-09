@@ -147,19 +147,21 @@ def face_matchng(path,request,tolerance=1):
         for j in range(len(result[i])):
             if result[i][j] == "match user is not found":
                 name = "未知人脸"
-                recognition_result[i].append([name, 0])
+                recognition_result[i].append([name, -1, 0])
             elif type(result[i][j]) == str:
                 name = "人脸解析出错"
-                recognition_result[i].append([name, 0])
+                recognition_result[i].append([name, -1, 0])
             elif type(result[i][j]) == dict:
                 try:
                     name = People.objects.filter(id=result[i][j]["id"])[0].name
-                    recognition_result[i].append([name, result[i][j]["score"]])
+                    peo_id = result[i][j]["id"]
+                    recognition_result[i].append([name, peo_id, result[i][j]["score"]])
                     if result[i][j]["score"] == 100:
                         draw.rectangle(box, None, 'lime', width=font_size // 8)
                 except:
                     name = "本地库丢失id=%s" % result[i][j]["id"]
-                    recognition_result[i].append([name, result[i][j]["score"]])
+                    peo_id = result[i][j]["id"]
+                    recognition_result[i].append([name, peo_id, result[i][j]["score"]])
                     if result[i][j]["score"] == 100:
                         draw.rectangle(box, None, 'lime', width=font_size // 8)
         if recognition_result[i][0][0] == "未知人脸" or recognition_result[i][0][0] == "人脸解析出错":
@@ -252,7 +254,61 @@ def face_show(image):
     pil_image.show()
 
 
-
+def dict_add_id(path, id):
+    people = People.objects.filter(id=id)[0]
+    name = people.name
+    name_path = os.path.split(path)[-1]
+    img_path = name_path[:name_path.find("-")]+name_path[name_path.rfind("."):]
+    try:
+        image_obj = image_db.objects.filter(path=img_path)[0]
+    except:
+        shutil.copy(os.path.join(BASE_DIR, "upload", img_path), os.path.join(BASE_DIR, "cv", "model_image", img_path))
+        image_obj = image_db(path=img_path)
+        image_obj.save()
+    try:
+        pic_save_path = os.path.join(BASE_DIR, 'cv', 'model_image', name+'@'+name_path)
+        fpw = open(pic_save_path, "wb")
+        fpr = open(path, "rb")
+        for line in fpr:
+            fpw.write(line)
+        fpw.close()
+        path = os.path.basename(pic_save_path)
+        name = path[:path.find('@')]
+        uploadtime = pic_save_path[pic_save_path.find('@') + 1:pic_save_path.rfind('-')]
+        uploadtime = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime(eval(uploadtime)))
+        print(name, uploadtime, path, "\n")
+        obj = FaceImage(name=people, path=path, upload_time=uploadtime, image=image_obj)
+        obj.save()
+        # 百度api上传
+        # client_id 为官网获取的AK， client_secret 为官网获取的SK
+        api_key = "jkyuzoYl4Cly99sEmxNMZog3"
+        secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
+        host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (api_key, secret_key)
+        response = requests.get(host)
+        if response:
+            access_token = response.json()["access_token"]
+        else:
+            return "token获取失败"
+        request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/user/add"
+        request_url = request_url + "?access_token=" + access_token
+        headers = {'content-type': 'application/json'}
+        png = open(pic_save_path, 'rb')
+        res = png.read()
+        png.close()
+        image = base64.b64encode(res).decode("ascii")
+        params = '{"image":"%s","image_type":"BASE64","group_id":"admin","user_id":"%d"}' % (image, people.id)
+        headers = {'content-type': 'application/json'}
+        response = requests.post(request_url, data=params, headers=headers)
+        if response.json()["error_msg"] !="SUCCESS":
+            return "人脸编码失败或图像已存在"
+        else:
+            obj.token = response.json()["result"]["face_token"]
+            obj.logid = response.json()["log_id"]
+            obj.save()
+    except IndexError:
+        print("人脸过于模糊，请提供清晰的正面照")
+        return 0
+    return 1
 
 
 

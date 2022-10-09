@@ -165,11 +165,11 @@
 				<h4 class="col-md-12 col-xs-12 mt30">相关人物：</h4>
 				<table class="table">
 				  <tbody>
-					{% for num,name in namelist%}
+					{% for num,name,id in namelist%}
 					<tr>
 						<td><h4>{{num}}号人脸</h4></td>
 					    <td><h4>{{name}}</h4></td>
-					    <td><h4><a href="/facelist/{{name}}">详情>></a></h4></td>
+					    <td><h4><a href="/facelist/{{id}}">详情>></a></h4></td>
 					</tr>
 					{% endfor %}
 				  </tbody>

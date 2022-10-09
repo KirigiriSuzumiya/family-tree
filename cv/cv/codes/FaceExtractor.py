@@ -41,7 +41,7 @@ def extractor(img_path):
 
 def baidu_extractor(img_path):
     BASE_DIR = Path(__file__).resolve().parent.parent.parent
-    url = 'http://124.221.104.193/static/upload/'+img_path
+    url = 'http://43.143.68.17/static/upload/'+img_path
     print("地址：", url)
     img_path = os.path.join(BASE_DIR, "upload", img_path)
     # client_id 为官网获取的AK， client_secret 为官网获取的SK

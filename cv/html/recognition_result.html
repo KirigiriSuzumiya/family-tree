@@ -150,7 +150,7 @@
 							<td></td>
 							<td></td>
 						</tr>
-							{% for name,score in faceresult %}
+							{% for name,id,score in faceresult %}
 						<tr>
 							<td><h4>&nbsp</h4></td>
 							<td><h4>{{name|default:"未知"}}</h4></td>
@@ -158,7 +158,7 @@
 							<td>
 								<h4>
 								{% if  name != "未知人脸" %}
-									<a href="/facelist/{{name}}">详情>></a>
+									<a href="/facelist/{{id}}">详情>></a>
 								{% endif %}
 								</h4>
 							</td>
