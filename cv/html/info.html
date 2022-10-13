@@ -77,10 +77,10 @@
 
 				<table class="table">
 				  <tbody>
-				  {% for name in namelist %}
+				  {% for name,id in namelist %}
 					<tr>
 					  <td><h4>{{name}}</h4></td>
-					  <td><h4><a href="/facelist/{{name}}">详情>></a></h4></td>
+					  <td><h4><a href="/facelist/{{id}}">详情>></a></h4></td>
 					</tr>
 				  {% endfor %}
 				  </tbody>

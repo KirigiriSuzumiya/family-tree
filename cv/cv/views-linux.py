@@ -97,11 +97,11 @@ def name_upload(request):
             i += 1
             if name == '':
                 continue
-            info = FaceRecognition.dict_add(path, name)
+            info, id = FaceRecognition.dict_add(path, name)
             if info != 1:
                 messages.error(request, info)
                 return HttpResponseRedirect('/faceupload')
-            namelist.append(name)
+            namelist.append([name, id])
     context = {"namelist": namelist}
     return render(request, "info.html", context)
 
@@ -378,28 +378,6 @@ def face_edit(request, re_name):
     people_obj.other_name = request.POST['other_name']
     people_obj.located_time = request.POST['located_time']
     people_obj.save()
-
-    if re_name != request.POST['name'].strip():
-        peo_list = People.objects.filter(mate=re_name)
-        for peo in peo_list:
-            peo.mate = request.POST['name'].strip()
-            peo.save()
-        peo_list = People.objects.filter(mother=re_name)
-        for peo in peo_list:
-            peo.mother = request.POST['name'].strip()
-            peo.save()
-        peo_list = People.objects.filter(father=re_name)
-        for peo in peo_list:
-            peo.father = request.POST['name'].strip()
-            peo.save()
-        peo_list = People.objects.all()
-        for peo in peo_list:
-            if not peo.kids:
-                continue
-            if re_name in peo.kids:
-                num = peo.kids.index(re_name)
-                peo.kids[num] = request.POST['name'].strip()
-                peo.save()
     messages.error(request, people_obj.name + "已修改")
     return HttpResponseRedirect("/facelist/%s" % people_obj.id)
 
@@ -864,7 +842,7 @@ def upload_again(request):
         try:
             info = FaceRecognition.dict_add_id(face_path, name)
         except:
-            info = FaceRecognition.dict_add(face_path, name)
+            info, id = FaceRecognition.dict_add(face_path, name)
         if info == 1:
             return HttpResponse(name+"补录成功")
         else:
