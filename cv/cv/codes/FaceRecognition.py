@@ -64,7 +64,7 @@ def face_matchng(path,request,tolerance=1):
             image_obj = image_db.objects.get(path=os.path.basename(img_path))
             if not image_obj.use_baidu:
                 raise "NotUsingBaidu"
-        url = 'http://124.221.104.193/static/upload/' + os.path.basename(img_path)
+        url = 'http://43.143.68.17/static/upload/' + os.path.basename(img_path)
         print("地址：", url)
         # 设置请求包体
         request_url = "https://aip.baidubce.com/rest/2.0/face/v3/detect"
