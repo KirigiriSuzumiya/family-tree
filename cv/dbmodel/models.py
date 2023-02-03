@@ -37,6 +37,7 @@ class People(models.Model):
     visited = models.IntegerField(default=0)
     visit_time = models.CharField(max_length=500, blank=True, null=True)
     institute = models.CharField(max_length=500, blank=True, null=True)
+    edu = models.CharField(max_length=500, blank=True, null=True)
     located_time = models.CharField(max_length=500, blank=True, null=True)
 
     def __str__(self):

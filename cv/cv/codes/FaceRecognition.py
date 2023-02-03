@@ -140,6 +140,8 @@ def face_matchng(path,request,tolerance=1):
     font_size = pil_image.size[0] // 50
     ft = ImageFont.truetype(os.path.join(BASE_DIR, 'cv', 'files', 'arialuni.ttf'), font_size)
     for i in range(len(locations)):
+        font_size = int(abs(locations[i][3]-locations[i][1]) // 3)
+        ft = ImageFont.truetype(os.path.join(BASE_DIR, 'cv', 'files', 'arialuni.ttf'), font_size)
         box = (locations[i][3], locations[i][0], locations[i][1], locations[i][2])
         draw.rectangle(box, None, 'yellow', width=font_size // 8)
         draw.text((box[0:2]), str(i+1), "red", ft)
@@ -156,13 +158,13 @@ def face_matchng(path,request,tolerance=1):
                     name = People.objects.filter(id=result[i][j]["id"])[0].name
                     peo_id = result[i][j]["id"]
                     recognition_result[i].append([name, peo_id, result[i][j]["score"]])
-                    if result[i][j]["score"] == 100:
+                    if result[i][j]["score"] >= 99.9:
                         draw.rectangle(box, None, 'lime', width=font_size // 8)
                 except:
                     name = "本地库丢失id=%s" % result[i][j]["id"]
                     peo_id = result[i][j]["id"]
                     recognition_result[i].append([name, peo_id, result[i][j]["score"]])
-                    if result[i][j]["score"] == 100:
+                    if result[i][j]["score"] >= 99.9:
                         draw.rectangle(box, None, 'lime', width=font_size // 8)
         if recognition_result[i][0][0] == "未知人脸" or recognition_result[i][0][0] == "人脸解析出错":
             continue

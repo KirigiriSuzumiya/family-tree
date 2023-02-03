@@ -167,7 +167,10 @@ def piclist(request):
             continue
         list_pic.append([name, path, number, count, relate])
         count = (count + 1) % 2
-    paginator = Paginator(list_pic, 10)
+    if request.method == "POST":
+        paginator = Paginator(list_pic, len(list_pic))
+    else:
+        paginator = Paginator(list_pic, 10)
     context['piclist'] = paginator.page(current_num)
     # 大于11页时
     if paginator.num_pages > 11:
@@ -296,6 +299,7 @@ def facelist(request, id):
     context['loc3_y'] = name_obj.loc3_y
     context['loc3_info'] = name_obj.loc3_info
     context['institute'] = name_obj.institute
+    context['edu'] = name_obj.edu
     context['family'] = []
     face_obj_list = FaceImage.objects.filter(name=name_obj).order_by("-image__token_time")
     try:
@@ -373,6 +377,7 @@ def face_edit(request, re_name):
     people_obj.ming = request.POST['ming']
     people_obj.family_name = request.POST['family_name']
     people_obj.institute = request.POST['institute']
+    people_obj.edu = request.POST['edu']
     people_obj.zi = request.POST['zi']
     people_obj.other_name = request.POST['other_name']
     people_obj.located_time = request.POST['located_time']
@@ -387,13 +392,13 @@ def face_edit_info(request):
     try:
         people_objs = People.objects.filter(father=name)
         for people in people_objs:
-            kids.append(people.name)
+            kids.append(people.id)
     except:
         pass
     try:
         people_objs = People.objects.filter(mother=name)
         for people in people_objs:
-            kids.append(people.name)
+            kids.append(people.id)
     except:
         pass
     try:
@@ -411,7 +416,7 @@ def face_edit_info(request):
     mate = None
     try:
         people_objs = People.objects.filter(mate=name)
-        mate = people_objs[0].name
+        mate = people_objs[0].id
     except:
         pass
     parents = []
@@ -421,7 +426,7 @@ def face_edit_info(request):
             if not people.kids:
                 continue
             if name in people.kids:
-                parents.append(people.name)
+                parents.append(people.id)
     except:
         pass
     return HttpResponse("补齐建议—伴侣：%s，孩子：%s，父辈：%s" % (mate, res_kids, parents))

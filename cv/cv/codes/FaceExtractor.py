@@ -20,6 +20,8 @@ def extractor(img_path):
     face_list = locations
     for i in range(len(face_list)):
         box = (face_list[i][3], face_list[i][0], face_list[i][1], face_list[i][2])
+        font_size = int(abs(box[0] - box[2]) // 3)
+        ft = ImageFont.truetype(os.path.join(BASE_DIR, 'cv', 'files', 'arialuni.ttf'), font_size)
         draw.rectangle(box, None, 'yellow')
         draw.text((box[0:2]), str(i+1), "red", ft)
     img_path = os.path.join(BASE_DIR, 'cv', 'model_image', os.path.split(img_path)[-1])
@@ -79,6 +81,8 @@ def baidu_extractor(img_path):
     face_list = locations
     for i in range(len(face_list)):
         box = (face_list[i]["left"], face_list[i]["top"], face_list[i]["left"] + face_list[i]["width"],face_list[i]["top"] + face_list[i]["height"])
+        font_size = int(abs(box[0]-box[2]) // 3)
+        ft = ImageFont.truetype(os.path.join(BASE_DIR, 'cv', 'files', 'arialuni.ttf'), font_size)
         draw.rectangle(box, None, 'yellow')
         draw.text((box[0:2]), str(i +1), "red", ft)
     img_path = os.path.join(BASE_DIR, 'cv', 'model_image', os.path.split(img_path)[-1])

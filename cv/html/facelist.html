@@ -55,7 +55,7 @@
 				// 2.请求方式
 				type:'post',  // 不指定默认就是get，都是小写
 				// 3.数据
-				data:{'csrfmiddlewaretoken': csrf,'name':'{{name}}'},
+				data:{'csrfmiddlewaretoken': csrf,'name':'{{id}}'},
 				// 4.回调函数:当后端给你返回结果的时候会自动触发，args接受后端的返回结果
 				success:function (args) {
 					document.getElementById('fill').innerHTML=args;
@@ -410,6 +410,7 @@
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="datetime-local" name="birth_date" value="{{birth_date|default:''}}" placeholder="出生日期"></h5>
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="datetime-local" name="death_date" value="{{death_date|default:''}}" placeholder="去世日期"></h5>
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="institute" value="{{institute|default:''}}" placeholder="单位机构"></h5>
+									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="edu" value="{{edu|default:''}}" placeholder="教育"></h5>
 								</fieldset>
 								<fieldset>
 									<legend><h3 style="color:white">人物概述</h3></legend>
