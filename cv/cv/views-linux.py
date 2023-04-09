@@ -1,8 +1,10 @@
 import base64
 
+import numpy as np
+import pandas as pd
 import requests
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileResponse
 from django.shortcuts import render
 import os
 import time
@@ -21,6 +23,8 @@ import re
 
 # -*- coding: CP936 -*-
 
+api_key = "jkyuzoYl4Cly99sEmxNMZog3"
+secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
 def always():
     context = {
         "info": FaceRecognition.initialing(),
@@ -436,8 +440,6 @@ def face_edit_info(request):
 def edit_pic(request, path):
     # client_id 为官网获取的AK， client_secret 为官网获取的SK
     # 获取access_token
-    api_key = "jkyuzoYl4Cly99sEmxNMZog3"
-    secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
     host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (api_key, secret_key)
     response = requests.get(host)
     if response:
@@ -488,13 +490,13 @@ def familytree(request, id):
                     pass
 
         # 将配偶加进队列
-        # try:
-        #     print(People.objects.get(name=peo_now.mate))
-        #     if People.objects.get(name=peo_now.mate) not in check:
-        #         peo_obj_list.insert(peo_obj_list.index(peo_now)+1, People.objects.get(name=peo_now.mate))
-        #         check.insert(check.index(peo_now)+1, People.objects.get(name=peo_now.mate))
-        # except:
-        #     pass
+        try:
+            print(People.objects.get(name=peo_now.mate))
+            if People.objects.get(name=peo_now.mate) not in check:
+                # peo_obj_list.insert(peo_obj_list.index(peo_now)+1, People.objects.get(name=peo_now.mate))
+                check.insert(check.index(peo_now)+1, People.objects.get(name=peo_now.mate))
+        except:
+            pass
         # 将父亲加入队列
         try:
             People.objects.get(id=peo_now.father)
@@ -509,7 +511,7 @@ def familytree(request, id):
         try:
             People.objects.get(id=peo_now.mother)
             if People.objects.get(id=peo_now.mother) not in check:
-                peo_obj_list.insert(peo_obj_list.index(peo_now), People.objects.get(id=peo_now.mother))
+                # peo_obj_list.insert(peo_obj_list.index(peo_now), People.objects.get(id=peo_now.mother))
                 check.insert(check.index(peo_now), People.objects.get(id=peo_now.mother))
         except:
             pass
@@ -612,6 +614,22 @@ def re_familytree(people_obj, path):
     try:
         for i in people_obj.kids:
             kids_list.add(i)
+    except:
+        pass
+    try:
+        mate_list = []
+        for obj in People.objects.filter(mate=people_obj.id):
+            mate_list.append(obj)
+        for obj in People.objects.filter(mate=mate.id):
+            mate_list.append(obj)
+        for obj in mate_list:
+            if obj.id != mate.id and obj.id != people_obj.id:
+                try:
+                    for i in obj.kids:
+                        if i in kids_list:
+                            kids_list.remove(i)
+                except:
+                    pass
     except:
         pass
     kids_list = list(kids_list)
@@ -1024,3 +1042,242 @@ def data_transfer(request):
             i.kids = temp_list
             i.save()
     return HttpResponse("数据转换完成")
+
+
+def person_check(peo_obj):
+    if peo_obj.loc1_x:
+        return True
+    else:
+        return False
+def info2excel(request):
+    index_dict = ["起点","起点id","终点","终点id","边权","角色","备注"]
+    data = []
+    error = set()
+    for peo_obj in People.objects.all():
+        if not person_check(peo_obj):
+            continue
+        # 亲缘关系
+        print(peo_obj.id,peo_obj)
+        done = set()
+        list_5 = set()
+        if peo_obj.mother:
+            try:
+                int(peo_obj.mother)
+                list_5.add(peo_obj.mother)
+            except:
+                error.add(peo_obj.id)
+        if peo_obj.father:
+            try:
+                int(peo_obj.father)
+                list_5.add(peo_obj.father)
+            except:
+                error.add(peo_obj.id)
+        if peo_obj.mate:
+            try:
+                int(peo_obj.mate)
+                list_5.add(peo_obj.mate)
+            except:
+                error.add(peo_obj.id)
+        for i in People.objects.filter(mother=peo_obj.id):
+            list_5.add(i.id)
+        for i in People.objects.filter(father=peo_obj.id):
+            list_5.add(i.id)
+        for i in People.objects.filter(mate=peo_obj.id):
+            list_5.add(i.id)
+        if peo_obj.kids:
+            for i in peo_obj.kids:
+                list_5.add(i)
+        # 普通亲戚
+        list_4 = set()
+        peo_obj_list = [peo_obj]
+        path = os.path.join(BASE_DIR, 'statics', 'temp_image', str(time.time()) + '.txt')
+        fp = open(path, "w+", encoding="utf-8")
+        fp.close()
+        check = [peo_obj]
+        written = set()
+        # bfs遍历
+        while peo_obj_list:
+            peo_now = peo_obj_list[0]
+            # print(peo_now)
+            # 将孩子加入队列
+            kids_list = peo_now.kids
+            if kids_list:
+                for kid in kids_list:
+                    try:
+                        People.objects.get(id=kid)
+                        if People.objects.get(id=kid) not in check:
+                            peo_obj_list.insert(peo_obj_list.index(peo_now) + 1, People.objects.get(id=kid))
+                            check.insert(check.index(peo_now) + 1, People.objects.get(id=kid))
+                    except:
+                        pass
+                    finally:
+                        pass
+
+            # 将配偶加进队列
+            try:
+                # print(People.objects.get(name=peo_now.mate))
+                if People.objects.get(name=peo_now.mate) not in check:
+                    # peo_obj_list.insert(peo_obj_list.index(peo_now)+1, People.objects.get(name=peo_now.mate))
+                    check.insert(check.index(peo_now) + 1, People.objects.get(name=peo_now.mate))
+            except:
+                pass
+            # 将父亲加入队列
+            try:
+                People.objects.get(id=peo_now.father)
+                if People.objects.get(id=peo_now.father) not in check:
+                    peo_obj_list.insert(peo_obj_list.index(peo_now), People.objects.get(id=peo_now.father))
+                    check.insert(check.index(peo_now), People.objects.get(id=peo_now.father))
+            except:
+                pass
+            finally:
+                pass
+            # 将母亲加入队列
+            try:
+                People.objects.get(id=peo_now.mother)
+                if People.objects.get(id=peo_now.mother) not in check:
+                    # peo_obj_list.insert(peo_obj_list.index(peo_now), People.objects.get(id=peo_now.mother))
+                    check.insert(check.index(peo_now), People.objects.get(id=peo_now.mother))
+            except:
+                pass
+            finally:
+                pass
+            peo_obj_list.remove(peo_now)
+        for i in check:
+            list_4.add(i.id)
+        # 密切伙伴
+        list_3 = set()
+        list_3_from = dict()
+        if peo_obj.edu:
+            for edu in peo_obj.institute.split(";"):
+                if edu == "":
+                    continue
+                for i in People.objects.filter(edu__contains=edu):
+                    list_3.add(i.id)
+                    if list_3_from.get(str(i.id)):
+                        list_3_from[str(i.id)].append(edu)
+                    else:
+                        list_3_from[str(i.id)] = [edu]
+        if peo_obj.institute:
+            for institute in peo_obj.institute.split(";"):
+                if institute == "":
+                    continue
+                for i in People.objects.filter(institute__contains=institute):
+                    list_3.add(i.id)
+                    if list_3_from.get(str(i.id)):
+                        list_3_from[str(i.id)].append(institute)
+                    else:
+                        list_3_from[str(i.id)] = [institute]
+        # 轻度社交
+        list_2 = set()
+        list_2_from = dict()
+        for group_photo in FaceImage.objects.filter(name=People.objects.get(id=peo_obj.id)):
+            group_photo = group_photo.image
+            faces = FaceImage.objects.filter(image=group_photo)
+            for face in faces:
+                list_2.add(face.name.id)
+                if list_2_from.get(str(face.name.id)):
+                    list_2_from[str(face.name.id)].append(face.image.path)
+                else:
+                    list_2_from[str(face.name.id)] = [face.image.path]
+        for i in list_5:
+            peo_info = People.objects.get(id=i)
+            if not person_check(peo_info):
+                continue
+            data.append([peo_obj.name,peo_obj.id,peo_info.name, i, 5, "亲缘关系", "近代直系亲属"])
+            done.add(i)
+        for i in list_4:
+            peo_info = People.objects.get(id=i)
+            if i in done or i==peo_obj.id or not person_check(peo_info):
+                continue
+            data.append([peo_obj.name, peo_obj.id, peo_info.name, i, 4, "普通亲戚", "普通亲属"])
+            done.add(i)
+        for i in list_3:
+            peo_info = People.objects.get(id=i)
+            if i in done or i==peo_obj.id or not person_check(peo_info):
+                continue
+            data.append([peo_obj.name, peo_obj.id, peo_info.name, i, 3, "密切伙伴", str(list_3_from[str(i)])])
+            done.add(i)
+        for i in list_2:
+            peo_info = People.objects.get(id=i)
+            if i in done or i==peo_obj.id or not person_check(peo_info):
+                continue
+            data.append([peo_obj.name, peo_obj.id, peo_info.name, i, 2, "轻度社交", str(list_2_from[str(i)])])
+            done.add(i)
+    data.append([str(error)])
+    df = pd.DataFrame(data,columns=index_dict)
+    excel_path = os.path.join(BASE_DIR,"statics", "temp_image", str(time.time())+".xlsx")
+    df.to_excel(excel_path)
+    np_arr = np.array(df)
+    np_arr = np.insert(np_arr,0,1,axis=1)
+    id_set = set()
+    link_dict = set()
+    nodes = []
+    links = []
+    for i in np_arr:
+        if i[1] not in id_set:
+            nodes.append({"name": i[1], "value": i[2], "symbolSize": 20,"category":0})
+            id_set.add(i[1])
+        if i[3] not in id_set:
+            nodes.append({"name": i[3], "value": i[4], "symbolSize": 20, "category":0})
+            id_set.add(i[3])
+        if i[5] == 3:
+            i[7] = eval(i[7])
+            if i[7][0] not in id_set:
+                nodes.append({"name": i[7][0], "symbolSize": 20, "category":1})
+                id_set.add(i[7][0])
+            if (i[1], i[7][0]) not in link_dict:
+                link_dict.add((i[1], i[7][0]))
+                links.append({"source": i[1], "target": i[7][0], "value": i[5] * i[5]})
+                count = 0
+                for j in nodes:
+                    if j["name"] == i[1] or j["name"] == i[7][0]:
+                        j["symbolSize"] += 0.2
+                        count += 1
+                    if count >= 2:
+                        break
+        elif (i[1], i[3]) not in link_dict:
+            link_dict.add((i[1], i[3]))
+            links.append({"source": i[1], "target": i[3], "value": i[5] * i[5]})
+            count = 0
+            for j in nodes:
+                if j["name"] == i[1] or j["name"] == i[3]:
+                    j["symbolSize"] += 0.2
+                    count += 1
+                if count >= 2:
+                    break
+    obj = (
+        Graph()
+        .add("鼓岭房主", nodes, links, repulsion=8000, is_draggable=True,categories=[{"name":"person"},{"name":"institute"}])
+        .set_global_opts(title_opts=opts.TitleOpts(title="人员关系图", subtitle="社交关系可视化"),
+                         toolbox_opts=opts.ToolboxOpts(is_show=True))
+    )
+    html_path = os.path.join(BASE_DIR,"statics", "temp_image", str(time.time())+".html")
+    obj.render(html_path)
+    print(len(id_set))
+    print(len(link_dict) / 2)
+    return HttpResponse('<a href="/static/temp_image/%s">excel数据</a><br><a href="/static/temp_image/%s">图表</a>'
+                        % (os.path.basename(excel_path), os.path.basename(html_path)))
+
+def temp(request):
+    data = []
+    for peo_obj in People.objects.all():
+        if not person_check(peo_obj):
+            continue
+        info = []
+        en_name = ""
+        if peo_obj.first_name:
+            en_name = peo_obj.first_name[0] + "."
+        if peo_obj.middle_name:
+            en_name = en_name + peo_obj.middle_name[0] + "."
+        if peo_obj.last_name:
+            en_name = en_name + peo_obj.last_name
+        if peo_obj.loc1_info:
+            info.append(peo_obj.loc1_info)
+        if peo_obj.loc2_info:
+            info.append(peo_obj.loc2_info)
+        if peo_obj.loc3_info:
+            info.append(peo_obj.loc3_info)
+        info = " ".join(info)
+        data.append([peo_obj.id,peo_obj.name,info,en_name])
+    import pickle
+    pickle.dump(data,open("zty_data","wb"))

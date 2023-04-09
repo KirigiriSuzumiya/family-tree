@@ -1,8 +1,6 @@
 # family-tree
 家·谱——智能家谱录入查询是一款基于人脸识别与图像标签的在线家谱查询录入系统，提供人脸录入、识别到家谱构建的一站式web服务平台。使用django+python+face_recognition+BaiduAPI。
 
-review on：http://124.221.104.193/
-
 
 
 ## 环境
@@ -38,7 +36,11 @@ pip install pypinpyin
 pip install pyecharts
 ```
 
+## 配置API
 
+前往百度智能云申请免费的人脸识别资源并获取api_key和密钥
+
+并将他们填在`cv/baidu_key.txt`中
 
 ## 运行
 

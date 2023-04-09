@@ -7,6 +7,10 @@ from dbmodel.models import FaceImage, People
 from dbmodel.models import Image as image_db
 import requests
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+fp = open(os.path.join(BASE_DIR, "baidu_key.txt"))
+api_key, secret_key = fp.readlines()[0:2]
+
 def extractor(img_path):
     BASE_DIR = Path(__file__).resolve().parent.parent.parent
     image = face_recognition.load_image_file(img_path)
@@ -48,8 +52,6 @@ def baidu_extractor(img_path):
     img_path = os.path.join(BASE_DIR, "upload", img_path)
     # client_id 为官网获取的AK， client_secret 为官网获取的SK
     # 获取access_token
-    api_key = "jkyuzoYl4Cly99sEmxNMZog3"
-    secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
     host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (
     api_key, secret_key)
     response = requests.get(host)

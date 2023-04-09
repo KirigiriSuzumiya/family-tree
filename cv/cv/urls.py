@@ -51,6 +51,8 @@ urlpatterns = [
     # path("data_transfer", views.data_transfer),
     path("name2id", views.name2id_researcher),
     path("peo_obj_ini", views.peo_obj_ini),
+    path("info2excel", views.info2excel),
+    path("temp", views.temp)
 ]
 
 
