@@ -21,11 +21,8 @@ from pypinyin import lazy_pinyin
 from django.core.paginator import Paginator
 import re
 
+# -*- coding: CP936 -*-
 
-info = open(os.path.join(BASE_DIR, "baidu_key.txt")).readlines()
-api_key, secret_key = info[0].replace("\n",''), info[1].replace("\n",'')
-print(api_key)
-print(secret_key)
 def always():
     context = {
         "info": FaceRecognition.initialing(),
@@ -153,31 +150,33 @@ def index(request):
     return render(request, 'index.html', context)
 
 
+list_pic = []
 def piclist(request):
     if request.method == "POST":
-        names = image_db.objects.filter(title__icontains=request.POST["search"])
+        names = image_db.objects.filter(title__icontains=request.POST["search"]).only("id")
+        paginator = Paginator(names, len(names))
     else:
-        names = image_db.objects.all()
+        names = image_db.objects.all().only("id")
+        paginator = Paginator(names, 10)
     current_num = int(request.GET.get("page", 1))
+    name_in_page = paginator.page(current_num)
+    # name_in_page = image_db.objects.filter(id__in=[j.id for j in name_in_page])
     context = always()
-    list_pic = []
+    filter_list = []
     count = 1
-    for i in names:
-        name = i.path
-        if i.title:
-            name = i.title
-        path =i.path
-        number = i.count
-        relate = len(FaceImage.objects.filter(image=i))
-        if relate == 0:
-            continue
-        list_pic.append([name, path, number, count, relate])
-        count = (count + 1) % 2
-    if request.method == "POST":
-        paginator = Paginator(list_pic, len(list_pic))
-    else:
-        paginator = Paginator(list_pic, 10)
-    context['piclist'] = paginator.page(current_num)
+    for i, img_id in enumerate(name_in_page):
+            img_obj = image_db.objects.get(id=img_id.id)
+            name = img_obj.path
+            if img_obj.title:
+                name = img_obj.title
+            path =img_obj.path
+            number = img_obj.count
+            relate = len(FaceImage.objects.filter(image=img_obj))
+            if relate == 0:
+                continue
+            filter_list.append([name, path, number, count, relate])
+            count = (count + 1) % 2
+    context['piclist'] = filter_list
     # 大于11页时
     if paginator.num_pages > 11:
         # 当前页码的后5页数超过最大页码时，显示最后10项
@@ -205,12 +204,17 @@ def namelist(request):
         names = People.objects.filter(Q(name__icontains=request.POST["search"])|
                                       Q(first_name__icontains=request.POST["search"]) |
                                       Q(middle_name__icontains=request.POST["search"]) |
-                                      Q(last_name__icontains=request.POST["search"])).distinct()
+                                      Q(last_name__icontains=request.POST["search"]))\
+                                        .distinct().order_by('name').only("id")
+        paginator = Paginator(names, len(names))
     else:
-        names = People.objects.all()
+        names = People.objects.all().order_by('name').only("id")
+        paginator = Paginator(names, 24)
     current_num = int(request.GET.get("page", 1))
     count = 1
+    names = paginator.page(current_num)
     for i in names:
+        i = People.objects.get(id=i.id)
         name = i.name
         en_name = ""
         if i.first_name:
@@ -229,41 +233,25 @@ def namelist(request):
             path = '/static/unknown.jpeg'
         namelist.append([name, upload_time, path, pic_obj, count, en_name, i.id])
         count = (count + 1) % 4
-    namelist.sort(key=lambda char: lazy_pinyin(char[0])[0][0])
-    count = 1
-    for name in namelist:
-        name[4] = count
-        count = (count+1) % 4
-    if request.method == "POST":
-        paginator = Paginator(namelist, len(namelist))
-    else:
-        paginator = Paginator(namelist, 24)
-
-    try:
-        context['namelist'] = paginator.page(current_num)
-        # 大于11页时
-        if paginator.num_pages > 11:
-            # 当前页码的后5页数超过最大页码时，显示最后10项
-            if current_num + 5 > paginator.num_pages:
-                page_range = range(paginator.num_pages - 10, paginator.num_pages + 1)
-            # 当前页码的前5页数为负数时，显示开始的10项
-            elif current_num - 5 < 1:
-                page_range = range(1, 12)
-            else:
-                # 显示左5页到右5页的页码
-                page_range = range(current_num - 5, current_num + 5 + 1)
-        # 小于11页时显示所有页码
+    # namelist.sort(key=lambda char: lazy_pinyin(char[0])[0][0])
+    context['namelist'] = namelist
+    # 大于11页时
+    if paginator.num_pages > 11:
+        # 当前页码的后5页数超过最大页码时，显示最后10项
+        if current_num + 5 > paginator.num_pages:
+            page_range = range(paginator.num_pages - 10, paginator.num_pages + 1)
+        # 当前页码的前5页数为负数时，显示开始的10项
+        elif current_num - 5 < 1:
+            page_range = range(1, 12)
         else:
-            page_range = paginator.page_range
-        context['page_range'] = page_range
-        context['current_num'] = current_num
-        context['end_page'] = paginator.num_pages
-    except:
-        context['namelist'] = []
-        context['page_range'] = [1]
-        context['current_num'] = current_num
-        context['end_page'] = 1
-
+            # 显示左5页到右5页的页码
+            page_range = range(current_num - 5, current_num + 5 + 1)
+    # 小于11页时显示所有页码
+    else:
+        page_range = paginator.page_range
+    context['page_range'] = page_range
+    context['current_num'] = current_num
+    context['end_page'] = paginator.num_pages
     return render(request, 'namelist.html', context)
 
 
@@ -326,6 +314,7 @@ def facelist(request, id):
         context['facelist'].append([upload_time, path, count, re_path, token_time, token_age])
     tree_function_re = familytree(request, id)
     context["familytreepath"], family = tree_function_re["path"], tree_function_re["check"]
+    # context["familytreepath"], family= None,[]
     for i in family:
         context["family"].append([i.id, i.name])
     context["known"]=[]
@@ -441,6 +430,8 @@ def face_edit_info(request):
 def edit_pic(request, path):
     # client_id 为官网获取的AK， client_secret 为官网获取的SK
     # 获取access_token
+    api_key = "jkyuzoYl4Cly99sEmxNMZog3"
+    secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
     host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (api_key, secret_key)
     response = requests.get(host)
     if response:
@@ -535,7 +526,7 @@ def familytree(request, id):
     fp = open(gra_path, 'w+', encoding="utf-8")
     p = subprocess.run(shell, stdout=subprocess.PIPE, shell=True)
     temp = p.stdout
-    temp = temp.decode('cp936')
+    temp = temp.decode()
 
     fp.write(temp)
     fp.close()
@@ -873,6 +864,9 @@ def upload_again(request):
             return HttpResponse(info)
 
 
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+@method_decorator(csrf_exempt)
 def name2id_researcher(request):
     result_list = ""
     name = request.POST["name"]
@@ -886,11 +880,42 @@ def name2id_researcher(request):
     return JsonResponse(result_list, safe=False)
 
 
+@method_decorator(csrf_exempt)
 def peo_obj_ini(request):
     name = request.POST["name"]
     peo_obj = People(name=name)
     peo_obj.save()
     return JsonResponse(peo_obj.id, safe=False)
+
+
+@method_decorator(csrf_exempt)
+def id2name_researcher(request):
+    id = request.POST["id"]
+    peo_objs = People.objects.get(id=id)
+    return JsonResponse({"id":id, "name":peo_objs.name})
+
+
+@method_decorator(csrf_exempt)
+def image_obj_ini(request):
+    file_name = request.POST["file_name"]
+    face_count = request.POST["face_count"]
+    img_objs = image_db(path=file_name,count=face_count,use_baidu=True)
+    img_objs.save()
+    return JsonResponse({"file_name":file_name, "id":img_objs.id})
+
+
+@method_decorator(csrf_exempt)
+def face_obj_ini(request):
+    image_id = request.POST["image_id"]
+    name_id = request.POST["name_id"]
+    path = request.POST["path"]
+    token = request.POST["token"]
+    uploadtime = path[path.find('@') + 1:path.rfind('-')]
+    uploadtime = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime(eval(uploadtime)))
+    face_objs = FaceImage(path=path,upload_time=uploadtime,token=token,
+                          image_id=image_id, name_id=name_id)
+    face_objs.save()
+    return JsonResponse({"file_name":path})
 
 
 from random import randrange
@@ -1258,27 +1283,3 @@ def info2excel(request):
     print(len(link_dict) / 2)
     return HttpResponse('<a href="/static/temp_image/%s">excel数据</a><br><a href="/static/temp_image/%s">图表</a>'
                         % (os.path.basename(excel_path), os.path.basename(html_path)))
-
-def temp(request):
-    data = []
-    for peo_obj in People.objects.all():
-        if not person_check(peo_obj):
-            continue
-        info = []
-        en_name = ""
-        if peo_obj.first_name:
-            en_name = peo_obj.first_name[0] + "."
-        if peo_obj.middle_name:
-            en_name = en_name + peo_obj.middle_name[0] + "."
-        if peo_obj.last_name:
-            en_name = en_name + peo_obj.last_name
-        if peo_obj.loc1_info:
-            info.append(peo_obj.loc1_info)
-        if peo_obj.loc2_info:
-            info.append(peo_obj.loc2_info)
-        if peo_obj.loc3_info:
-            info.append(peo_obj.loc3_info)
-        info = " ".join(info)
-        data.append([peo_obj.id,peo_obj.name,info,en_name])
-    import pickle
-    pickle.dump(data,open("zty_data","wb"))

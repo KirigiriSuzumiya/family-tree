@@ -22,7 +22,7 @@ class People(models.Model):
     father = models.CharField(max_length=50, blank=True, null=True)
     mother = models.CharField(max_length=50, blank=True, null=True)
     kids = models.JSONField(blank=True, null=True)
-    info = models.CharField(max_length=500, blank=True, null=True)
+    info = models.CharField(max_length=50000, blank=True, null=True)
     loc1_x = models.CharField(max_length=50, blank=True, null=True)
     loc1_y = models.CharField(max_length=50, blank=True, null=True)
     loc1_info = models.CharField(max_length=50, blank=True, null=True)
@@ -35,10 +35,10 @@ class People(models.Model):
     family_name = models.CharField(max_length=100, blank=True, null=True)
 
     visited = models.IntegerField(default=0)
-    visit_time = models.CharField(max_length=500, blank=True, null=True)
-    institute = models.CharField(max_length=500, blank=True, null=True)
-    edu = models.CharField(max_length=500, blank=True, null=True)
-    located_time = models.CharField(max_length=500, blank=True, null=True)
+    visit_time = models.CharField(max_length=50000, blank=True, null=True)
+    institute = models.CharField(max_length=50000, blank=True, null=True)
+    edu = models.CharField(max_length=50000, blank=True, null=True)
+    located_time = models.CharField(max_length=50000, blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -46,7 +46,7 @@ class People(models.Model):
 class Image(models.Model):
     path = models.CharField(max_length=1000)
     token_time = models.DateTimeField(blank=True, null=True)
-    info = models.CharField(max_length=1000, blank=True, null=True)
+    info = models.CharField(max_length=50000, blank=True, null=True)
     title = models.CharField(max_length=200, blank=True, null=True)
     count = models.IntegerField(blank=True, null=True)
     use_baidu = models.BooleanField(default=False)
@@ -55,12 +55,12 @@ class Image(models.Model):
 
 
 class FaceImage(models.Model):
-    path = models.CharField(max_length=1000, primary_key=True)
+    path = models.CharField(max_length=50000, primary_key=True)
     upload_time = models.DateTimeField(default=timezone.now)
     name = models.ForeignKey(People, on_delete=models.CASCADE, null=True)
     image = models.ForeignKey(Image, on_delete=models.CASCADE)
-    token = models.CharField(max_length=1000, null=True, blank=True)
-    logid = models.CharField(max_length=1000, null=True, blank=True)
+    token = models.CharField(max_length=50000, null=True, blank=True)
+    logid = models.CharField(max_length=50000, null=True, blank=True)
     def __str__(self):
         return self.path
 

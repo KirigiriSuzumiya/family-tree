@@ -1,0 +1,33 @@
+Watching for file changes with StatReloader
+Performing system checks...
+
+System check identified no issues (0 silenced).
+June 17, 2022 - 11:13:03
+Django version 4.0.4, using settings 'cv.settings'
+Starting development server at http://0.0.0.0:80/
+Quit the server with CONTROL-C.
+Not Found: /wiki/uploads/201202/1328790155GpvG5fD2.jpg
+[17/Jun/2022 11:13:24] "GET /admin/dbmodel/people/ HTTP/1.1" 200 57592
+[17/Jun/2022 11:13:24] "GET /admin/jsi18n/ HTTP/1.1" 200 8398
+[17/Jun/2022 11:13:26] "GET / HTTP/1.1" 200 7552
+Not Found: /js/jquery.js
+[17/Jun/2022 11:13:26] "GET /js/jquery.js HTTP/1.1" 404 4545
+Not Found: /js/bootstrap.min.js
+[17/Jun/2022 11:13:26] "GET /js/bootstrap.min.js HTTP/1.1" 404 4566
+Not Found: /js/nivo-lightbox.min.js
+[17/Jun/2022 11:13:26] "GET /js/nivo-lightbox.min.js HTTP/1.1" 404 4578
+Not Found: /js/custom.js
+[17/Jun/2022 11:13:26] "GET /js/custom.js HTTP/1.1" 404 4545
+[17/Jun/2022 11:13:27] "GET /static/images/image2.jpg HTTP/1.1" 200 432878
+[17/Jun/2022 11:13:28] "GET /faceupload HTTP/1.1" 200 5649
+[17/Jun/2022 11:13:29] "GET /index HTTP/1.1" 200 7552
+Not Found: /js/jquery.js
+[17/Jun/2022 11:13:30] "GET /js/jquery.js HTTP/1.1" 404 4545
+Not Found: /js/bootstrap.min.js
+Not Found: /js/nivo-lightbox.min.js
+[17/Jun/2022 11:13:30] "GET /js/bootstrap.min.js HTTP/1.1" 404 4566
+[17/Jun/2022 11:13:30] "GET /js/nivo-lightbox.min.js HTTP/1.1" 404 4578
+Not Found: /js/custom.js
+[17/Jun/2022 11:13:30] "GET /js/custom.js HTTP/1.1" 404 4545
+Not Found: /wiki//uploads/201109/1316827271d0kPGgjC_s.jpg
+Not Found: /wiki//uploads/201109/1316827242BD3n7ku9_s.jpg

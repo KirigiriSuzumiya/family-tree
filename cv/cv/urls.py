@@ -52,7 +52,9 @@ urlpatterns = [
     path("name2id", views.name2id_researcher),
     path("peo_obj_ini", views.peo_obj_ini),
     path("info2excel", views.info2excel),
-    path("temp", views.temp)
+    path("id2name", views.id2name_researcher),
+    path("image_obj_ini", views.image_obj_ini),
+    path("face_obj_ini",views.face_obj_ini)
 ]
 
 

@@ -2,3 +2,4 @@
 /cv/dbmodel/migrations/
 /cv/upload/
 /cv/statics/temp_image/
+*.sqlite3

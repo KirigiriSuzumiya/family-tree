@@ -16,8 +16,7 @@ from dbmodel.models import Image as image_db
 from django.contrib import messages
 info_dict = {}
 info =""
-fp = open(os.path.join(BASE_DIR, "baidu_key.txt"))
-api_key, secret_key = fp.readlines()[0:2]
+
 def initialing():
     return
     # 载入已保存的模型
@@ -42,6 +41,8 @@ def face_matchng(path,request,tolerance=1):
     # 获取access_token
     global info
     info = "正在初始化"
+    api_key = "jkyuzoYl4Cly99sEmxNMZog3"
+    secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
     host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (
     api_key, secret_key)
     response = requests.get(host)
@@ -204,6 +205,8 @@ def dict_add(path, name):
         obj.save()
         # 百度api上传
         # client_id 为官网获取的AK， client_secret 为官网获取的SK
+        api_key = "jkyuzoYl4Cly99sEmxNMZog3"
+        secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
         host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (api_key, secret_key)
         response = requests.get(host)
         if response:
@@ -280,6 +283,8 @@ def dict_add_id(path, id):
         obj.save()
         # 百度api上传
         # client_id 为官网获取的AK， client_secret 为官网获取的SK
+        api_key = "jkyuzoYl4Cly99sEmxNMZog3"
+        secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
         host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (api_key, secret_key)
         response = requests.get(host)
         if response:
