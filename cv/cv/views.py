@@ -20,8 +20,13 @@ import subprocess
 from pypinyin import lazy_pinyin
 from django.core.paginator import Paginator
 import re
+import json
 
 # -*- coding: CP936 -*-
+config_path = os.path.join(os.path.dirname(__file__),"..","..","config.json")
+auth = json.load(open(config_path,"r"))
+api_key = auth["face_api_key"]
+secret_key = auth["face_secret_key"]
 
 def always():
     context = {
@@ -430,8 +435,6 @@ def face_edit_info(request):
 def edit_pic(request, path):
     # client_id 为官网获取的AK， client_secret 为官网获取的SK
     # 获取access_token
-    api_key = "jkyuzoYl4Cly99sEmxNMZog3"
-    secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
     host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (api_key, secret_key)
     response = requests.get(host)
     if response:
@@ -789,8 +792,6 @@ def demo(request):
 
 def baidu_upload(request):
     faces = FaceImage.objects.all()
-    api_key = "jkyuzoYl4Cly99sEmxNMZog3"
-    secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
     host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (
     api_key, secret_key)
     response = requests.get(host)

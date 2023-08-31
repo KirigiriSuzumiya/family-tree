@@ -14,8 +14,14 @@ from django.shortcuts import render
 from dbmodel.models import FaceImage, People
 from dbmodel.models import Image as image_db
 from django.contrib import messages
+import json
 info_dict = {}
 info =""
+
+config_path = os.path.join(os.path.dirname(__file__),"..","..","..","config.json")
+auth = json.load(open(config_path,"r"))
+api_key = auth["face_api_key"]
+secret_key = auth["face_secret_key"]
 
 def initialing():
     return
@@ -41,8 +47,6 @@ def face_matchng(path,request,tolerance=1):
     # 获取access_token
     global info
     info = "正在初始化"
-    api_key = "jkyuzoYl4Cly99sEmxNMZog3"
-    secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
     host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (
     api_key, secret_key)
     response = requests.get(host)
@@ -205,8 +209,6 @@ def dict_add(path, name):
         obj.save()
         # 百度api上传
         # client_id 为官网获取的AK， client_secret 为官网获取的SK
-        api_key = "jkyuzoYl4Cly99sEmxNMZog3"
-        secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
         host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (api_key, secret_key)
         response = requests.get(host)
         if response:
@@ -283,8 +285,6 @@ def dict_add_id(path, id):
         obj.save()
         # 百度api上传
         # client_id 为官网获取的AK， client_secret 为官网获取的SK
-        api_key = "jkyuzoYl4Cly99sEmxNMZog3"
-        secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
         host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (api_key, secret_key)
         response = requests.get(host)
         if response:

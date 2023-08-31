@@ -13,6 +13,9 @@ from image_caption import caption_chat
 from baiduImage import Crawler
 
 
+auth = json.load(open("config.json","r"))
+api_key = auth["face_api_key"]
+secret_key = auth["face_secret_key"]
 # Paddleocr目前支持的多语言语种可以通过修改lang参数进行切换
 # 例如`ch`, `en`, `fr`, `german`, `korean`, `japan`
 ocr_engine = PaddleOCR(lang="ch", use_angle_cls=False, rec_batch_num=8,
@@ -26,8 +29,6 @@ def face_recognize(image,ocr_key, method, search_check, peo_id):
     cv2.imwrite(path, image)
     base64_str = cv2.imencode('.jpg',image)[1].tobytes()
     base64_str = base64.b64encode(base64_str)
-    api_key = "jkyuzoYl4Cly99sEmxNMZog3"
-    secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
     host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (
     api_key, secret_key)
     response = requests.get(host)
@@ -155,8 +156,6 @@ def chat_init(img_path):
     with open(img_path,"rb") as fp:
         base64_str = fp.read()
     base64_str = base64.b64encode(base64_str)
-    api_key = "jkyuzoYl4Cly99sEmxNMZog3"
-    secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
     host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (
     api_key, secret_key)
     response = requests.get(host)
@@ -364,8 +363,6 @@ with gr.Blocks(title="Face+OCR+Chat demo") as demo:
             gr.Info("Upload seccess")
         else:
             gr.Error("Upload failed")
-        api_key = "jkyuzoYl4Cly99sEmxNMZog3"
-        secret_key = "09UaoIt6Bu96g10Hjiyg2pnyW0QvRCrj"
         host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (api_key, secret_key)
         response = requests.get(host)
         if response:

@@ -3,6 +3,8 @@ import json
 import requests
 
 
+auth = json.load(open("config.json","r"))
+
 def traverse_nested_lists(lst, result):
     """
     Traverse a nested list recursively
@@ -58,7 +60,7 @@ def get_access_token():
     使用 API Key，Secret Key 获取access_token，替换下列示例中的应用API Key、应用Secret Key
     """
         
-    url = "https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=m0KDXW5zbVxjHy3UCQOX9f5R&client_secret=ha5uKeK1NTDbY03jIY8ANDwCXEKZRvjK"
+    url = f"https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id={auth['chat_api_key']}&client_secret={auth['chat_secret_key']}"
     
     payload = json.dumps("")
     headers = {

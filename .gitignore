@@ -3,3 +3,4 @@
 /cv/upload/
 /cv/statics/temp_image/
 *.sqlite3
+*.pyc
