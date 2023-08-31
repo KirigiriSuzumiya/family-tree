@@ -4,8 +4,9 @@ import numpy as np
 import json
 import time
 
-huggingface_token = "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"
 
+auth = json.load(open("config.json","r"))
+huggingface_token = auth["huggingface_token"]
 
 def caption_chat(img_path, ocr, face_info):
     API_URL = "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large"
@@ -101,7 +102,7 @@ def get_access_token():
     使用 API Key，Secret Key 获取access_token，替换下列示例中的应用API Key、应用Secret Key
     """
         
-    url = "https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=m0KDXW5zbVxjHy3UCQOX9f5R&client_secret=ha5uKeK1NTDbY03jIY8ANDwCXEKZRvjK"
+    url = f"https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id={auth['chat_api_key']}&client_secret={auth['chat_secret_key']}"
     
     payload = json.dumps("")
     headers = {
