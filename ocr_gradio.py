@@ -418,4 +418,4 @@ with gr.Blocks(title="Face+OCR+Chat demo") as demo:
         
     
 demo.queue(concurrency_count=3)
-demo.launch(server_name="0.0.0.0",server_port=2333, show_error=True)
+demo.launch(server_name="0.0.0.0",server_port=2333, show_error=True, auth=("admin", "kuliang2023"))

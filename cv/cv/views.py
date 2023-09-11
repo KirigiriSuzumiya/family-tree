@@ -24,9 +24,9 @@ import json
 
 # -*- coding: CP936 -*-
 config_path = os.path.join(os.path.dirname(__file__),"..","..","config.json")
-auth = json.load(open(config_path,"r"))
-api_key = auth["face_api_key"]
-secret_key = auth["face_secret_key"]
+auth_config = json.load(open(config_path,"r"))
+api_key = auth_config["face_api_key"]
+secret_key = auth_config["face_secret_key"]
 
 def always():
     context = {

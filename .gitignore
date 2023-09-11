@@ -4,3 +4,4 @@
 /cv/statics/temp_image/
 *.sqlite3
 *.pyc
+config.json
