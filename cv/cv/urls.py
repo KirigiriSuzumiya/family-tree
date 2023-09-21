@@ -33,6 +33,7 @@ urlpatterns = [
     path(r'user', views.user_view),
     path(r'user_oper', views.user_oper),
     path(r'logout', views.logout_view),
+    re_path(r'pic_change/(.*)$', login_required(views.pic_change)),
     re_path(r'facelist/(.*)$', login_required(views.facelist)),
     re_path(r'face_edit/(.*)$', login_required(views.face_edit)),
     re_path(r'face_edit_info', login_required(views.face_edit_info)),

@@ -21,6 +21,7 @@ from pypinyin import lazy_pinyin
 from django.core.paginator import Paginator
 import re
 import json
+import shutil
 
 # -*- coding: CP936 -*-
 config_path = os.path.join(os.path.dirname(__file__),"..","..","config.json")
@@ -46,6 +47,15 @@ def about(request):
 def face_upload(request):
     context = always()
     return render(request, 'faceupload.html', context)
+
+
+def pic_change(request, path):
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    submit_pic = request.FILES.get('pic')
+    with open(os.path.join(BASE_DIR, "upload", path), "wb") as f:
+        for line in submit_pic:
+            f.write(line)
+    return HttpResponseRedirect("/pic_info/"+path)
 
 
 def pic_upload(request):
@@ -731,6 +741,7 @@ def pic_info(request, path):
     except:
         pass
     context['time_range'] = time_out
+    context['random'] = time.time()
 
     return render(request, "pic_info.html", context)
 
@@ -837,6 +848,7 @@ def recog_again(request, path):
         messages.error(request, '无法识别出人脸，请上传清晰的人脸图片')
         return HttpResponseRedirect('/recognition')
     context['path'] = return_dic['path']
+    shutil.copy(os.path.join(BASE_DIR, "statics", "temp_image", path), os.path.join(BASE_DIR, "cv", "model_image", path))
     context['xls_path'] = return_dic['path'][:return_dic['path'].rfind('.')] + '.xls'
     context['result'] = return_dic['result']
     return render(request, 'recognition_again.html', context)

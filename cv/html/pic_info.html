@@ -143,8 +143,13 @@
 				</div>
 			</div>
 			<div class="col-md-10 col-md-offset-1 col-sm-12 mt30">
-				<a id="result" href="/static/{{path}}" data-lightbox-gallery="portfolio-gallery"><img class="img-responsive center-block" src="/static/{{path}}" alt="总览图"></a>
-				<a id="origin" href="/static/upload/{{path}}" data-lightbox-gallery="portfolio-gallery" style="display:None"><img class="img-responsive center-block" src="/static/upload/{{path}}" alt="原图"></a>
+				<a id="result" href="/static/{{path}}?v={{random}}" data-lightbox-gallery="portfolio-gallery"><img class="img-responsive center-block" src="/static/{{path}}?v={{random}}" alt="总览图"></a>
+				<a id="origin" href="/static/upload/{{path}}?v={{random}}" data-lightbox-gallery="portfolio-gallery" style="display:None"><img class="img-responsive center-block" src="/static/upload/{{path}}?v={{random}}" alt="原图"></a>
+				<form action="/pic_change/{{path}}" method="POST" enctype="multipart/form-data">
+					{% csrf_token %}
+					<input type="file" name="pic" required="required" accept="image">
+					<button type="submit">重传文件</button>
+				</form>
 				<h4 class="col-md-12 col-xs-12">{{path}}基本信息:</h4>
 				<table class="table"><tbody><tr><td></td></tr></tbody></table>
 				<form action="/pic_info_edit/{{path}}" method="post" >
