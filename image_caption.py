@@ -8,20 +8,21 @@ import time
 auth = json.load(open("config.json","r"))
 huggingface_token = auth["huggingface_token"]
 
-def caption_chat(img_path, ocr, face_info):
-    API_URL = "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large"
-    headers = {"Authorization": f"Bearer {huggingface_token}"}
-    os.environ['CURL_CA_BUNDLE'] = ''
-    with open(img_path, "rb") as f:
-        data = f.read()
-    while True:
-        try:
-            response = requests.post(API_URL, headers=headers, data=data, )
-            break
-        except:
-            print("retry")
-            time.sleep(0.6)
-    caption_res = response.json()[0]["generated_text"]
+def caption_chat(img_path, ocr, face_info, additional_info):
+    # API_URL = "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large"
+    # headers = {"Authorization": f"Bearer {huggingface_token}"}
+    # os.environ['CURL_CA_BUNDLE'] = ''
+    # with open(img_path, "rb") as f:
+    #     data = f.read()
+    # while True:
+    #     try:
+    #         response = requests.post(API_URL, headers=headers, data=data, )
+    #         break
+    #     except:
+    #         print("retry")
+    #         time.sleep(0.6)
+    # caption_res = response.json()[0]["generated_text"]
+    caption_res = additional_info
     result = ocr.ocr(img_path, cls=True)
     print(len(result),len(result[0]),len(result[0][0]))
     bboxes = []
@@ -36,7 +37,7 @@ def caption_chat(img_path, ocr, face_info):
         sorted_text.append(text[index][0])
     ocr_result = " ".join(sorted_text)
     prompt1 = get_prompt(ocr_result, caption_res, face_info)
-    url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/eb-instant?access_token=" + get_access_token()
+    url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions?access_token=" + get_access_token()
     payload = json.dumps({
         "messages": [
             {
@@ -48,9 +49,17 @@ def caption_chat(img_path, ocr, face_info):
     headers = {
         'Content-Type': 'application/json'
     }
-
-    response = requests.request("POST", url, headers=headers, data=payload)
-    eb_result = response.json()["result"]
+    
+    
+    while True:
+        try:
+            response = requests.request("POST", url, headers=headers, data=payload)
+            eb_result = response.json()["result"]
+            break
+        except:
+            import gradio as gr
+            gr.Info("retry")
+            time.sleep(1)
     return prompt1, eb_result, bboxes, sorted_text
 
 
@@ -82,12 +91,12 @@ def get_prompt(ocr_result, desc, face_list):
     """
     Generate prompt from ocr_result and key
     """
-    task_description = '你现在的任务是为我介绍一张包含单人或多人的相片并回答我提出的一些问题。我将会提供包括对相片的整体描述，出现人物的概述，以及相片中出现的文字等关键信息。\n\n'\
-                       '你需要尝试从我提供的有限信息中理解这张相片中的人物为什么会一起拍照，以及从相片中的文字中找到相片是在何时何地拍摄的。\n\n'
+    task_description = '你现在的任务是为我从一张包含单人或多人的相片中提取年代、地址、人名和关键词。我将会提供包括对相片的额外概述，出现人物的概述，以及相片中出现的文字等关键信息。\n\n'\
+                       '你需要尝试从我提供的有限信息中更正可能的字符识别错误，并提取有用的内容，最后将尽可能多的年代、地址、人名和关键词返回给我。\n\n'
     prompt = f"""{task_description}
         下面正式开始：
 
-        相片整体概述：`{desc}`
+        相片额外概述：`{desc}`
 
         相片中的文字：`{ocr_result}`
 

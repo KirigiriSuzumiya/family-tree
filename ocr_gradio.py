@@ -127,7 +127,7 @@ def face_recognize(image,ocr_key, method, search_check, peo_id):
         
 
 def chat_fun(msg, history):
-    url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/eb-instant?access_token=" + ocr_chat.get_access_token()
+    url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions_pro?access_token=" + ocr_chat.get_access_token()
     payload = []
     for i in history:
         payload.append({"role": "user",
@@ -150,7 +150,46 @@ def chat_fun(msg, history):
     return "", history
 
 
-def chat_init(img_path):
+def chat_fun_knowledge(msg, history, resource_info):
+    url = 'https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/plugin/0qmhz6shhxzvdz71/?access_token=' + ocr_chat.get_access_token()
+    payload = []
+    for i in history:
+        payload.append({"role": "user",
+                        "content": i[0]})
+        payload.append({"role": "assistant",
+                        "content": i[1]})
+    # payload.append({"role": "user",
+    #                     "content": msg})
+    payload = {"history": payload,
+               "query": msg,
+               "verbose":True,}
+    payload = json.dumps(payload)
+    # print(payload)
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload)
+    eb_result = response.json()["result"]
+    history.append([msg, eb_result])
+    file_names = []
+    if not resource_info:
+        resource_info = ""
+    for i in response.json()["meta_info"]["response"]["result"]["responses"]:
+        file_name = i["docName"]
+        if file_name in file_names:
+            continue
+        else:
+            file_names.append(file_name)
+        file_content = open(f"/home/no_prompt/{file_name}").read()
+        resource_info +=f"""<details> <summary>{file_name}</summary>
+            {file_content}
+            </details>
+        """   
+    return "", history, resource_info
+
+
+def chat_init(img_path, additional_info):
     global ocr_engine
     image = cv2.imread(img_path)
     with open(img_path,"rb") as fp:
@@ -209,12 +248,13 @@ def chat_init(img_path):
             face_list.append(response.json()['name'])
             bboxs[i][1]= "face:"+response.json()['name']
         time.sleep(0.6)
-    prompt, response, ocr_bbox,text = caption_chat(img_path, ocr_engine, face_list)
+    prompt, response, ocr_bbox,text = caption_chat(img_path, ocr_engine, face_list, additional_info)
     for i, ocr in enumerate(ocr_bbox):
         bboxs.append([[int(ocr[0][0]),int(ocr[0][1]),
                         int(ocr[2][0]),int(ocr[2][1])], 
                         text[i]])
-    return [image,bboxs], [[prompt,response]]
+    next_chat = f"根据关键词{response}尝试去联系这张相片中可能的人物社交与建筑关系，并向我介绍可能的拍摄地点。"
+    return [image,bboxs], [[prompt,response]], next_chat
 
 
 with gr.Blocks(title="Face+OCR+Chat demo") as demo:
@@ -269,20 +309,40 @@ with gr.Blocks(title="Face+OCR+Chat demo") as demo:
                     inputs=[input_image, ocr_key, method, search_check,face_id], 
                     outputs=[faceoutput,face_list, face_index, temp_output, create_name, image_id, ocr_output, fast_link])
     with gr.Tab("ChatBot"):
-        with gr.Column():
-            gr.Markdown("Notice: This module is under development and may be unstable,please report any error you meet to make our service better.")
-            with gr.Row():
-                input_image_bot = gr.Image(source="upload", type="filepath")
-                faceoutput_bot = gr.AnnotatedImage()
-            bot_btn = gr.Button("Let's chat about the image!", variant="primary")
-            chatbot = gr.Chatbot(height=800, label="LLM chatbot", info="say something and try it out!")
-            msg = gr.Textbox(label="input your words", info="push 'ENTER' to submit")
-            msg.submit(chat_fun, [msg,chatbot], [msg, chatbot])
-            bot_btn.click(chat_init,
-                          inputs=input_image_bot, 
-                          outputs=[faceoutput_bot, chatbot])
-            clr_btn = gr.Button("Clear")
-            clr_btn.click(lambda: [None,None], None, [msg, chatbot])
+        with gr.Tab("Knowledge Base"):
+            with gr.Column():
+                gr.Markdown("Notice: This module is under development and may be unstable,please report any error you meet to make our service better.")
+                gr.Markdown("- TEXT Knowledge based on wiki_doc_20230921 is only for evaluation test, real-time update will be supported in the near future.")
+                gr.Markdown("- Image Knowledge based on OCR and Face Recognition")
+                with gr.Accordion("Image Caption Embedding"):
+                    with gr.Row():
+                        input_image_bot = gr.Image(source="upload", type="filepath")
+                        faceoutput_bot = gr.AnnotatedImage()
+                    additional_info = gr.Textbox(placeholder="Some additional information you want to mentioned")
+                    bot_btn = gr.Button("Extract Info from the Image", variant="primary")
+                with gr.Row():
+                    chatbot_knowledge = gr.Chatbot(height=800, scale=2,
+                                                   label="LLM chatbot", info="say something and try it out!")
+                    with gr.Accordion("Knowledge Source"):
+                        knowledge_source = gr.HTML(height=800, label="Knowledge Source", 
+                                                info="Docs hit by embedding match.", show_label=True)
+                msg_knowledge = gr.Textbox(label="input your words", info="push 'ENTER' to submit")
+                msg_knowledge.submit(chat_fun_knowledge, 
+                                     [msg_knowledge, chatbot_knowledge, knowledge_source], 
+                                     [msg_knowledge, chatbot_knowledge, knowledge_source])
+                bot_btn.click(chat_init,
+                              inputs=[input_image_bot, additional_info], 
+                              outputs=[faceoutput_bot, chatbot_knowledge, msg_knowledge])
+                clr_btn_knowledge = gr.Button("Clear")
+                clr_btn_knowledge.click(lambda: [None,None,None], None, [msg_knowledge, chatbot_knowledge, knowledge_source])
+        with gr.Tab("Normal Chat"):
+            with gr.Column():
+                gr.Markdown("Notice: This module is under development and may be unstable,please report any error you meet to make our service better.")
+                chatbot = gr.Chatbot(height=800, label="LLM chatbot", info="say something and try it out!")
+                msg = gr.Textbox(label="input your words", info="push 'ENTER' to submit")
+                msg.submit(chat_fun, [msg,chatbot], [msg, chatbot])
+                clr_btn = gr.Button("Clear")
+                clr_btn.click(lambda: [None,None], None, [msg, chatbot])
 
 
 
