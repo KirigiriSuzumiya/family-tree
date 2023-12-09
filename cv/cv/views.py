@@ -16,6 +16,8 @@ from dbmodel.models import Image as image_db
 from django.contrib import auth
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 import subprocess
 from pypinyin import lazy_pinyin
 from django.core.paginator import Paginator
@@ -342,6 +344,7 @@ def facelist(request, id):
                 continue
             else:
                 context["known"].append([face.name.id, face.name.name])
+    context["new_graph"] = json.dumps(familytree_info(id), ensure_ascii=False)
     return render(request, 'facelist.html', context)
 
 
@@ -440,6 +443,87 @@ def face_edit_info(request):
     except:
         pass
     return HttpResponse("补齐建议—伴侣：%s，孩子：%s，父辈：%s" % (mate, res_kids, parents))
+
+
+def face_edit_check(request, id):
+    out_message = ""
+    people_obj = People.objects.get(id=int(id))
+
+    # father
+    try:
+        father_obj = People.objects.get(id=int(people_obj.father))
+        if not father_obj.kids or int(id) not in father_obj.kids:
+            if father_obj.kids:
+                father_obj.kids.append(int(id))
+            else:
+                father_obj.kids = [int(id)]
+            father_obj.save()
+            out_message += f"已为父亲对象({father_obj.name})更新kids字段！\n"
+    except:
+        out_message += "为父亲对象更新kids字段时出错！\n"
+    # mother
+    try:
+        mother_obj = People.objects.get(id=int(people_obj.mother))
+        if not mother_obj.kids or int(id) not in mother_obj.kids:
+            if mother_obj.kids:
+                mother_obj.kids.append(int(id))
+            else:
+                mother_obj.kids = [int(id)]
+            mother_obj.save()
+            out_message += f"已为母亲对象({mother_obj.name})更新kids字段！\n"
+    except:
+        out_message += "为母亲对象更新kids字段时出错！\n"
+    # kids
+    try:
+        if not people_obj.sex:
+            out_message += "要更新kids对象需要填写性别！！\n"
+        else:
+            kids = people_obj.kids
+            for kid in kids:
+                try:
+                    kid_obj = People.objects.get(id=kid)
+                    if people_obj.sex == "male":
+                        if kid_obj.father and kid_obj.father != str(id):
+                            out_message += f"更新kids对象(id={kid})的父亲字段时发生冲突，请手动检查错误！\n"
+                        elif kid_obj.father == str(id):
+                            pass
+                        else:
+                            kid_obj.father = str(id)
+                            kid_obj.save()
+                            out_message += f"已为kids对象({kid_obj.name})更新父亲字段！\n"
+                    if people_obj.sex == "female":
+                        if kid_obj.mother and kid_obj.mother != str(id):
+                            out_message += f"更新kids对象(id={kid})的母亲字段时发生冲突，请手动检查错误！\n"
+                        elif kid_obj.mother == str(id):
+                            pass
+                        else:
+                            kid_obj.mother = str(id)
+                            kid_obj.save()
+                            out_message += f"已为kids对象({kid_obj.name})更新母亲字段！\n"
+                except:
+                    out_message += f"更新kids对象(id={kid})时发生错误！可能是对象不存在！\n"
+    except:
+        out_message += "尝试遍历kids列表时出错！\n"
+    # mate
+    try:
+        mate_obj = People.objects.get(id=int(people_obj.mate))
+        if mate_obj.mate and mate_obj.mate != str(id):
+            out_message += f"更新mate对象(id={people_obj.mate})的mate字段时发生冲突，请手动检查错误！\n"
+        elif mate_obj.mate == str(id):
+            pass
+        else:
+            mate_obj.mate = str(id)
+            mate_obj.save()
+            out_message += f"已为mate对象({mate_obj.name})更新mate字段！\n"
+    except:
+        out_message += "更新mate对象时出错！"
+    if len(out_message) == 0:
+        messages.error(request, "没有需要关联更新的内容！")
+    else:
+        for message in out_message.split("\n"):
+            messages.error(request, message)
+    return HttpResponseRedirect("/facelist/%s" % id)
+    # return HttpResponse(out_message)
 
 
 def edit_pic(request, path):
@@ -673,6 +757,258 @@ def re_familytree(people_obj, path):
     return couple_obj
 
 
+def familytree_info(id):
+    people_obj = People.objects.get(id=id)
+    peo_obj_list = [people_obj]
+    check = [str(people_obj.id)]
+    out_data = []
+    back_check = dict()
+    while peo_obj_list:
+        peo_now = peo_obj_list[0]
+        peo_obj_list.remove(peo_now)
+        check.insert(0, str(peo_now.id))
+        if FaceImage.objects.filter(name=peo_now.id):
+            pic_obj = FaceImage.objects.filter(name=peo_now.id)[0]
+            avatar_path = '/static/' + pic_obj.path
+        else:
+            avatar_path = '/static/unknown.jpeg'
+        if peo_now.sex == "male":
+            sex = "M"
+        elif peo_now.sex == "female":
+            sex = "F"
+        else:
+            sex = None
+        peo_info = {
+            "id": str(peo_now.id),
+            "data":{
+                "gender": sex,
+                "first name": peo_now.name,
+                "last name":"",
+                "birthday": f"{str(peo_now.birth_date)[:-9]}-{str(peo_now.death_date)[:-9]}",
+                "avatar": avatar_path
+            },
+            "rels":{
+                "spouses": [],
+                "children": [],
+            }
+        }
+        # mates
+        if peo_now.mate and str(peo_now.mate) not in peo_info["rels"]["spouses"]:
+            peo_info["rels"]["spouses"].append(str(peo_now.mate))
+        try:
+            mates = People.objects.filter(mate=str(peo_now.id))
+            for mate in mates:
+                if str(mate.id) not in peo_info["rels"]["spouses"]:
+                    peo_info["rels"]["spouses"].append(str(mate.id))
+        except:
+            pass
+        for i in peo_info["rels"]["spouses"]:
+            if i not in check:
+                peo_obj_list.append(People.objects.get(id=int(i)))
+
+        # children
+        if peo_now.kids:
+            for kid in peo_now.kids:
+                if str(kid) not in peo_info["rels"]["children"]:
+                    peo_info["rels"]["children"].append(str(kid))
+        try:
+            kids = People.objects.filter(father=str(peo_now.id))
+            for kid in kids:
+                if str(kid.id) not in peo_info["rels"]["children"]:
+                    peo_info["rels"]["children"].append(str(kid.id))
+        except:
+            pass
+        try:
+            kids = People.objects.filter(mother=str(peo_now.id))
+            for kid in kids:
+                if str(kid.id) not in peo_info["rels"]["children"]:
+                    peo_info["rels"]["children"].append(str(kid.id))
+        except:
+            pass
+        for children in peo_info["rels"]["children"]:
+            if children not in check:
+                peo_obj_list.append(People.objects.get(id=int(children)))
+            if back_check.get(children):
+                back_check[children].append(peo_now.id)
+            else:
+                back_check[children]=[peo_now.id]
+        # father & mother
+        if peo_now.father:
+            peo_info["rels"]["father"]=str(peo_now.father)
+        if peo_now.mother:
+            peo_info["rels"]["mother"]=str(peo_now.mother)
+        if (not peo_now.father) and back_check.get(str(peo_now.id)):
+            for i in back_check[str(peo_now.id)]:
+                if not peo_info["rels"].get("mother"):
+                    peo_info["rels"]["father"]=str(i)
+                    break
+                elif str(i)!=peo_info["rels"]["mother"]:
+                    peo_info["rels"]["father"]=str(i)
+                    break
+        if (not peo_now.mother) and back_check.get(str(peo_now.id)):
+            for i in back_check[str(peo_now.id)]:
+                if (not peo_info["rels"].get("father")):
+                    peo_info["rels"]["mother"]=str(i)
+                    break
+                elif str(i)!=peo_info["rels"]["father"]:
+                    peo_info["rels"]["mother"]=str(i)
+                    break
+        if peo_info["rels"].get("mother") and peo_info["rels"]["mother"] not in check:
+                peo_obj_list.append(People.objects.get(id=int(peo_info["rels"]["mother"])))
+        if peo_info["rels"].get("father") and peo_info["rels"]["father"] not in check:
+                peo_obj_list.append(People.objects.get(id=int(peo_info["rels"]["father"])))
+        out_data.append(peo_info)
+        
+    return out_data
+
+
+@method_decorator(csrf_exempt)
+def familytree_new(request, id):
+    people_obj = People.objects.get(id=id)
+    peo_obj_list = [people_obj]
+    check = [people_obj]
+    # bfs遍历
+    while peo_obj_list:
+        peo_now = peo_obj_list[0]
+        print(peo_now)
+        # 将孩子加入队列
+        kids_list = peo_now.kids
+        if kids_list:
+            for kid in kids_list:
+                try:
+                    People.objects.get(id=kid)
+                    if People.objects.get(id=kid) not in check:
+                        peo_obj_list.insert(peo_obj_list.index(peo_now)+1, People.objects.get(id=kid))
+                        check.insert(check.index(peo_now)+1, People.objects.get(id=kid))
+                except:
+                    pass
+                finally:
+                    pass
+
+        # 将配偶加进队列
+        try:
+            print(People.objects.get(name=peo_now.mate))
+            if People.objects.get(name=peo_now.mate) not in check:
+                # peo_obj_list.insert(peo_obj_list.index(peo_now)+1, People.objects.get(name=peo_now.mate))
+                check.insert(check.index(peo_now)+1, People.objects.get(name=peo_now.mate))
+        except:
+            pass
+        # 将父亲加入队列
+        try:
+            People.objects.get(id=peo_now.father)
+            if People.objects.get(id=peo_now.father) not in check:
+                peo_obj_list.insert(peo_obj_list.index(peo_now), People.objects.get(id=peo_now.father))
+                check.insert(check.index(peo_now), People.objects.get(id=peo_now.father))
+        except:
+            pass
+        finally:
+            pass
+        # 将母亲加入队列
+        try:
+            People.objects.get(id=peo_now.mother)
+            if People.objects.get(id=peo_now.mother) not in check:
+                # peo_obj_list.insert(peo_obj_list.index(peo_now), People.objects.get(id=peo_now.mother))
+                check.insert(check.index(peo_now), People.objects.get(id=peo_now.mother))
+        except:
+            pass
+        finally:
+            pass
+
+
+
+        print(check, "\n")
+        print(peo_obj_list, "\n")
+        peo_obj_list.remove(peo_now)
+
+    out_data = []
+    back_check = dict()
+    for peo_now in check:
+        if FaceImage.objects.filter(name=peo_now.id):
+            pic_obj = FaceImage.objects.filter(name=peo_now.id)[0]
+            avatar_path = '/static/' + pic_obj.path
+        else:
+            avatar_path = '/static/unknown.jpeg'
+        if peo_now.sex == "male":
+            sex = "M"
+        elif peo_now.sex == "female":
+            sex = "F"
+        else:
+            sex = None
+        peo_info = {
+            "id": str(peo_now.id),
+            "data":{
+                "gender": sex,
+                "first name": peo_now.name,
+                "last name":"",
+                "birthday": f"{str(peo_now.birth_date)[:-9]}-{str(peo_now.death_date)[:-9]}",
+                "avatar": avatar_path
+            },
+            "rels":{
+                "spouses": [],
+                "children": [],
+            }
+        }
+        # mates
+        if peo_now.mate and str(peo_now.mate) not in peo_info["rels"]["spouses"]:
+            peo_info["rels"]["spouses"].append(str(peo_now.mate))
+        try:
+            mates = People.objects.filter(mate=str(peo_now.id))
+            for mate in mates:
+                if str(mate.id) not in peo_info["rels"]["spouses"]:
+                    peo_info["rels"]["spouses"].append(str(mate.id))
+        except:
+            pass
+        
+        # children
+        if peo_now.kids:
+            for kid in peo_now.kids:
+                if str(kid) not in peo_info["rels"]["children"]:
+                    peo_info["rels"]["children"].append(str(kid))
+        try:
+            kids = People.objects.filter(father=str(peo_now.id))
+            for kid in kids:
+                if str(kid.id) not in peo_info["rels"]["children"]:
+                    peo_info["rels"]["children"].append(str(kid.id))
+        except:
+            pass
+        try:
+            kids = People.objects.filter(mother=str(peo_now.id))
+            for kid in kids:
+                if str(kid.id) not in peo_info["rels"]["children"]:
+                    peo_info["rels"]["children"].append(str(kid.id))
+        except:
+            pass
+        for children in peo_info["rels"]["children"]:
+            if back_check.get(children):
+                back_check[children].append(peo_now.id)
+            else:
+                back_check[children]=[peo_now.id]
+        # father & mother
+        if peo_now.father:
+            peo_info["rels"]["father"]=str(peo_now.father)
+        if peo_now.mother:
+            peo_info["rels"]["mother"]=str(peo_now.mother)
+        if (not peo_now.father) and back_check.get(str(peo_now.id)):
+            for i in back_check[str(peo_now.id)]:
+                if not peo_info["rels"].get("mother"):
+                    peo_info["rels"]["father"]=str(i)
+                    break
+                elif str(i)!=peo_info["rels"]["mother"]:
+                    peo_info["rels"]["father"]=str(i)
+                    break
+        if (not peo_now.mother) and back_check.get(str(peo_now.id)):
+            for i in back_check[str(peo_now.id)]:
+                if (not peo_info["rels"].get("father")):
+                    peo_info["rels"]["mother"]=str(i)
+                    break
+                elif str(i)!=peo_info["rels"]["father"]:
+                    peo_info["rels"]["mother"]=str(i)
+                    break
+        out_data.append(peo_info)
+        
+    return JsonResponse(out_data, safe=False)
+
+
 def pic_info(request, path):
     context = {}
     context["path"] = path
@@ -877,8 +1213,6 @@ def upload_again(request):
             return HttpResponse(info)
 
 
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 @method_decorator(csrf_exempt)
 def name2id_researcher(request):
     result_list = ""
@@ -1088,6 +1422,8 @@ def person_check(peo_obj):
         return True
     else:
         return False
+    
+
 def info2excel(request):
     index_dict = ["起点","起点id","终点","终点id","边权","角色","备注"]
     data = []

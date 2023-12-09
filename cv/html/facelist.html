@@ -14,6 +14,9 @@
 	<link rel="stylesheet" href="/static/facelist/css/fontAwesome.css">
 	<link rel="stylesheet" href="/static/facelist/css/light-box.css">
 	<link rel="stylesheet" href="/static/facelist/css/templatemo-main.css">
+	<link rel="stylesheet" href="/static/facelist/css/family-chart.css">
+	<script src="https://unpkg.com/d3@6"></script>
+    <script src="https://unpkg.com/family-chart"></script>
 	<script src="https://cdn.bootcss.com/jquery/3.0.0/jquery.min.js"></script>
 	<script type="text/javascript" src="/static/js/echarts.min.js"></script>
 	<style>
@@ -94,6 +97,7 @@
 				}
 				})
         }
+		
     </script>
 
 </head>
@@ -216,7 +220,180 @@
 							<div class="container-fluid">
 								<div class="row">
 									<div>
-										<h2 class="col-md-12 col-xs-12" style="color:white;"><i class="fa fa-user"></i>家谱展示</h2>
+										<h2 class="col-md-12 col-xs-12" style="color:white;"><i class="fa fa-user"></i>可交互家谱展示</h2>
+										<div class="col-md-8 col-m-offset-2 col-xs-12">
+											<div>
+												<script>
+													class fullScreen {
+														/**
+														* @description: 全屏初始化
+														* @param {Function} fn 用户浏览器不支持全屏的回调
+														*/
+														constructor(fn) {
+															this.prefixName = ""; // 浏览器前缀
+															this.isFullscreenData = true; // 浏览器是否支持全屏
+															this.isFullscreen(fn);
+														}
+														/**
+														* @description: 将传进来的元素全屏
+														* @param {String} domName 要全屏的dom名称
+														*/
+														Fullscreen(domName) {
+															const element = document.querySelector(domName);
+															const methodName =
+															this.prefixName === ""
+																? "requestFullscreen"
+																: `${this.prefixName}RequestFullScreen`;
+															element[methodName]();
+														}
+														// 退出全屏
+														exitFullscreen() {
+															const methodName =
+															this.prefixName === ""
+																? "exitFullscreen"
+																: `${this.prefixName}ExitFullscreen`;
+															document[methodName]();
+														}
+														/**
+														* @description: 监听进入/离开全屏
+														* @param {Function} enter 进入全屏的回调
+														*  @param {Function} quit 离开全屏的回调
+														*/
+														screenChange(enter, quit) {
+															if (!this.isFullscreenData) return;
+															const methodName = `on${this.prefixName}fullscreenchange`;
+															document[methodName] = e => {
+															if (this.isElementFullScreen()) {
+																enter && enter(e); // 进入全屏回调
+															} else {
+																quit && quit(e); // 离开全屏的回调
+															}
+															};
+														}
+														/**
+														* @description: 浏览器无法进入全屏时触发,可能是技术原因，也可能是用户拒绝：比如全屏请求不是在事件处理函数中调用,会在这里拦截到错误
+														* @param {Function} enterErrorFn 回调
+														*/
+														screenError(enterErrorFn) {
+															const methodName = `on${this.prefixName}fullscreenerror`;
+															document[methodName] = e => {
+															enterErrorFn && enterErrorFn(e);
+															};
+														}
+														/**
+														* @description: 是否支持全屏+判断浏览器前缀
+														* @param {Function} fn 不支持全屏的回调函数 这里设了一个默认值
+														*/
+														isFullscreen(fn) {
+															let fullscreenEnabled;
+															// 判断浏览器前缀
+															if (document.fullscreenEnabled) {
+															fullscreenEnabled = document.fullscreenEnabled;
+															} else if (document.webkitFullscreenEnabled) {
+															fullscreenEnabled = document.webkitFullscreenEnabled;
+															this.prefixName = "webkit";
+															} else if (document.mozFullScreenEnabled) {
+															fullscreenEnabled = document.mozFullScreenEnabled;
+															this.prefixName = "moz";
+															} else if (document.msFullscreenEnabled) {
+															fullscreenEnabled = document.msFullscreenEnabled;
+															this.prefixName = "ms";
+															}
+															if (!fullscreenEnabled) {
+															this.isFullscreenData = false;
+															fn && fn(); // 执行不支持全屏的回调
+															}
+														}
+														/**
+														* @description: 检测有没有元素处于全屏状态
+														* @return 布尔值
+														*/
+														isElementFullScreen() {
+															const fullscreenElement =
+															document.fullscreenElement ||
+															document.msFullscreenElement ||
+															document.mozFullScreenElement ||
+															document.webkitFullscreenElement;
+															if (fullscreenElement === null) {
+															return false; // 当前没有元素在全屏状态
+															} else {
+															return true; // 有元素在全屏状态
+															}
+														}
+														}
+														let full = new fullScreen(() => {
+														console.log("不支持");
+														});
+														full.screenError(e => {
+														console.log("进去全屏失败:", e);
+														});
+														// 全屏请求必须在事件处理函数中调用，否则将会被拒绝。
+														full.Fullscreen(".left"); // 触发进去全屏失败回调
+														const obj = {
+														enter: e => {
+															// 如果退出全屏 退出的还是全屏状态，将会触发进入全屏的回调，这种情况比较少 注意一下
+															console.log("进入全屏", e);
+														},
+														quit: e => {
+															console.log("退出全屏", e);
+															// 通常不会出现嵌套的情况
+														}
+														};
+														full.screenChange(obj.enter, obj.quit);
+														function changeScreen() {
+														full.Fullscreen("#FamilyChart");
+														}
+														// 退出全屏 退出到上次的状态
+														function exitScreen() {
+														full.exitFullscreen();
+														}	
+												</script>
+												<div id="FamilyChart" class="f3"></div>
+												<script type="module">
+											const store = f3.createStore({
+												data: data(),
+												node_separation: 250,
+												level_separation: 150,
+												}),
+												view = f3.d3AnimationView({
+												store,
+												cont: document.querySelector("#FamilyChart"),
+												}),
+												Card = f3.elements.Card({
+												store,
+												svg: view.svg,
+												card_dim: {
+													w: 220,
+													h: 70,
+													text_x: 75,
+													text_y: 15,
+													img_w: 60,
+													img_h: 60,
+													img_x: 5,
+													img_y: 5,
+												},
+												card_display: [
+													(d) => `${d.data["first name"] || ""} ${d.data["last name"] || ""}`,
+													(d) => `${d.data["birthday"] || ""}`,
+												],
+												mini_tree: true,
+												link_break: false,
+												});
+
+											view.setCard(Card);
+											store.setOnUpdate((props) => view.update(props || {}));
+											store.update.tree({ initial: true });
+
+											function data() {
+												return {{new_graph | safe}};
+											}
+												</script>
+												<span onclick="changeScreen()" class="main-btn"><a href="">全屏</a>
+											</div>
+										</div>	
+											
+											
+										<h2 class="col-md-12 col-xs-12" style="color:white;"><i class="fa fa-user"></i>静态家谱展示</h2>
 										<div class="col-md-8 col-m-offset-2 col-xs-12">
 											<a href="{% static familytreepath %}">
 												<img src="{% static familytreepath %}" style="height:100%; width:auto;" alt="家谱加载失败">
@@ -235,8 +412,8 @@
 								<div class="row">
 										<div class="right-content">
 											<h2 class="col-md-12 col-xs-12">家族成员</h2>
-											    {% for id,person in family %}
-													<span onclick="window.open('/facelist/{{id}}','_self');" class="main-btn"><a href="">{{person}}</a>
+											    {% for familyid,person in family %}
+													<span onclick="window.open('/facelist/{{familyid}}','_self');" class="main-btn"><a href="">{{person}}</a>
 													</span>
 												{% endfor %}
 
@@ -283,8 +460,8 @@
 													*社交关系由合照信息联想
 												</p>
 											<h2 class="col-md-12 col-xs-12">可能认识的人</h2>
-											    {% for id,person in known %}
-													<span onclick="window.open('/facelist/{{id}}','_self');" class="main-btn"><a href="">{{person}}</a>
+											    {% for knownid,person in known %}
+													<span onclick="window.open('/facelist/{{knownid}}','_self');" class="main-btn"><a href="">{{person}}</a>
 													</span>
 												{% endfor %}
 
@@ -424,6 +601,10 @@
 							</h2>
 
 					</form>
+					<h2 class="col-md-2 col-md-offset-5">
+						<button class="btn btn-default" onclick="javascrtpt:window.location.href='/face_edit_check/{{id}}'"">关联更新</button>
+					</h2>
+
 				</div>
 			</div>
 		  </div>
