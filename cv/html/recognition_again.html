@@ -63,24 +63,34 @@
 				}
 				})
         }
+		var random_count = 1
         function upload_input_random(num,path){
-        	var name = 'random'
-        	var csrf = $('input[name="csrfmiddlewaretoken"]').val();  //增加csrf变量将在data中传参以避免403错误
-        	// 朝后端发送ajax请求
-				$.ajax({
-				// 1.指定朝哪个后端发送ajax请求
-				url:'/upload_again', //不写就是朝当前地址提交【与form表单的action参数相同】
-				// 2.请求方式
-				type:'post',  // 不指定默认就是get，都是小写
-				// 3.数据
-				data:{'csrfmiddlewaretoken': csrf,'num':num,'name':name,'path':path},
-				// 4.回调函数:当后端给你返回结果的时候会自动触发，args接受后端的返回结果
-				success:function (args) {
-					document.getElementById(num+"r").innerHTML=args;
-					document.getElementById(num+"r").onclick = "";
-					document.getElementById(num+"r").parentNode.parentNode.parentNode.style.backgroundColor = "lime";
-				}
-				})
+			if  (document.getElementById("random_prefix").value == ""){
+					//这个大括号里面写的是，当input的值的确为空时的处理方法
+					document.getElementById("random_prefix").focus();//使输入框获得焦点
+					alert("请先输入前缀！");
+			}
+			else {
+				var name = document.getElementById("random_prefix").value+random_count.toString();
+				random_count = random_count + 1;
+				var csrf = $('input[name="csrfmiddlewaretoken"]').val();  //增加csrf变量将在data中传参以避免403错误
+				// 朝后端发送ajax请求
+					$.ajax({
+					// 1.指定朝哪个后端发送ajax请求
+					url:'/upload_again', //不写就是朝当前地址提交【与form表单的action参数相同】
+					// 2.请求方式
+					type:'post',  // 不指定默认就是get，都是小写
+					// 3.数据
+					data:{'csrfmiddlewaretoken': csrf,'num':num,'name':name,'path':path},
+					// 4.回调函数:当后端给你返回结果的时候会自动触发，args接受后端的返回结果
+					success:function (args) {
+						document.getElementById(num+"r").innerHTML=args;
+						document.getElementById(num+"r").onclick = "";
+						document.getElementById(num+"r").parentNode.parentNode.parentNode.style.backgroundColor = "lime";
+					}
+					})
+			}
+        	
         }
     </script>
 </head>
@@ -131,7 +141,8 @@
 			</div>
 			<div class="col-md-10 col-md-offset-1 col-sm-12 mt30">
 				<a href="{% static path%}" data-lightbox-gallery="portfolio-gallery"><img class="img-responsive center-block" src="{% static path%}" alt="总览图"></a>
-                <h4>识别结果:</h4>
+                <input type="text" value="" id="random_prefix" placeholder="自动填充前缀">
+				<h4>识别结果:</h4>
 				<table class="table">
 					{% csrf_token %}
 					<thead>
@@ -151,7 +162,7 @@
 							<td>
 								<h4>
 									<a id="{{forloop.counter}}" href="#{{forloop.counter}}" onclick="upload_input({{forloop.counter}},'{% static path%}');">补录(带输入框)>></a>
-									<a id="{{forloop.counter}}r" href="#{{forloop.counter}}" onclick="upload_input_random({{forloop.counter}},'{% static path%}');">补录(随机名字)>></a>
+									<a id="{{forloop.counter}}r" href="#{{forloop.counter}}" onclick="upload_input_random({{forloop.counter}},'{% static path%}');">补录(自动填充)>></a>
 								</h4>
 							</td>
 						</tr>

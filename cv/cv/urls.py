@@ -38,7 +38,6 @@ urlpatterns = [
     re_path(r'face_edit/(.*)$', login_required(views.face_edit)),
     re_path(r'face_edit_info', login_required(views.face_edit_info)),
     re_path(r'face_edit_check/(.*)$', login_required(views.face_edit_check)),
-    re_path(r'familytree_new/(.*)$', views.familytree_new),
     re_path(r'edit_pic/(.*)$', login_required(views.edit_pic)),
     re_path(r'pic_info/(.*)$', login_required(views.pic_info)),
     re_path(r'pic_info_edit/(.*)$', login_required(views.pic_info_edit)),
