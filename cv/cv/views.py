@@ -24,6 +24,8 @@ from django.core.paginator import Paginator
 import re
 import json
 import shutil
+import cv2
+import subprocess
 
 # -*- coding: CP936 -*-
 config_path = os.path.join(os.path.dirname(__file__),"..","..","config.json")
@@ -102,6 +104,50 @@ def baidu_extract(request, img_path):
     context["path_list"] = path_list
     return render(request, 'NameUpload.html', context)
 
+
+def up_sample_extract(request, img_path):
+    img_path_abs = os.path.join(BASE_DIR, "upload", img_path)
+    time_now = str(time.time())
+    Final2x_config = {
+        "gpuid": -1,
+        "inputpath": [img_path_abs],
+        "model": "RealCUGAN-pro",
+        "modelscale": 2,
+        "modelnoise": -1,
+        "outputpath": os.path.join(BASE_DIR, "statics", "up_sample"),
+        "targetscale": 2.0,
+        "tta": False}
+    json_path = os.path.join(BASE_DIR,"temp",time_now+".json")
+    json.dump(Final2x_config, open(json_path,"w"))
+    subprocess.call(f"/usr/local/bin/Final2x-core -y {json_path}", shell=True)
+    try:
+        temp_img = cv2.imread(os.path.join(BASE_DIR,"statics","up_sample","outputs","2.0x-"+img_path[:img_path.rfind(".")]+".png"))
+    except:
+        messages.error(request, "上采样失败")
+        return HttpResponseRedirect("/faceupload")
+    new_img_path = time_now + ".png"
+    shutil.copyfile(os.path.join(BASE_DIR,"statics","up_sample","outputs","2.0x-"+img_path[:img_path.rfind(".")]+".png"),
+                    os.path.join(BASE_DIR,"upload",new_img_path))
+    os.remove(os.path.join(BASE_DIR,"statics","up_sample","outputs","2.0x-"+img_path[:img_path.rfind(".")]+".png"))
+    shutil.copyfile(os.path.join(BASE_DIR,"upload",img_path),
+                    os.path.join(BASE_DIR,"statics","up_sample",new_img_path))
+    try:
+        image = image_db(path=new_img_path)
+        image.save()
+        face_num = FaceExtractor.baidu_extractor(new_img_path)
+    except:
+        messages.error(request, '您上传的文件不是合法的图片文件(可能是图片超出大小了)')
+        return HttpResponseRedirect(f'/static/upload/{new_img_path}')
+    pic_path = os.path.basename(new_img_path)
+    context = {}
+    context["upload_states"] = "上传成功！共找到%d个人脸" % face_num
+    context["total_path"] = os.path.join(pic_path)
+    path_list = []
+    for i in range(face_num):
+        path_list.append(os.path.join("temp_image", pic_path[0:pic_path.rfind('.')]+'-'+str(i+1)+pic_path[pic_path.rfind("."):]))
+    context["path_list"] = path_list
+    return render(request, 'NameUpload.html', context)
+    
 
 def name_upload(request):
     BASE_DIR = Path(__file__).resolve().parent.parent
@@ -900,6 +946,13 @@ def pic_info(request, path):
     context['info'] = image_obj.info
     context['title'] = image_obj.title
     context["use_baidu"] = image_obj.use_baidu
+    context["loc_x"] = image_obj.loc_x
+    context["loc_y"] = image_obj.loc_y
+    context["loc_info"] = image_obj.loc_info
+    if os.path.exists(os.path.join(BASE_DIR,"statics","up_sample",path)):
+        context['origin'] = "up_sample/"+path
+    else:
+        context['origin'] = ""
     count = 0
     time_range = set()
     for face in face_obj:
@@ -967,6 +1020,9 @@ def pic_info_edit(request, path):
     image_obj = image_db.objects.get(path=path)
     image_obj.info = request.POST["info"]
     image_obj.title = request.POST["title"]
+    image_obj.loc_info = request.POST["loc_info"]
+    image_obj.loc_x = request.POST["loc_x"]
+    image_obj.loc_y= request.POST["loc_y"]
     if request.POST['token_time']:
         image_obj.token_time = request.POST["token_time"]
     else:

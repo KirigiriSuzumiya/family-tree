@@ -280,12 +280,17 @@ with gr.Blocks(title="Face+OCR+Chat demo") as demo:
                 with gr.Column():
                     input_image = gr.Image(source="upload", type="numpy")
                     with gr.Row():
-                        ocr_key = gr.Textbox(label="ocr keywords", value="姓名，籍贯", 
-                                            info="LLM will find the information you need according to keywords given below")
+                        # method = gr.Radio(label="recognizing method", choices=["Segement only","Face only","Face+Ocr+Chat"], value="Segement only",
+                        #                 info="we use PP-OCRv4 and ERNIE-Bot-turbo for ocr and information extraction")
                         method = gr.Radio(label="recognizing method", choices=["Face only","Face+Ocr+Chat"], value="Face only",
                                         info="we use PP-OCRv4 and ERNIE-Bot-turbo for ocr and information extraction")
-                    ocr_output = gr.Textbox(interactive=False,label="ocr output",max_lines=5,
-                                            info="raw output of ocr, you can get text without cleaning from here")
+                        # up_sample = gr.Radio(label="up sample", choices=["1.0x","2.0x","4.0x"], value="1.0x",
+                        #                 info="scale of up-sample and denoise,using 1.0x will skip the preprocess")
+                    with gr.Row():
+                        ocr_key = gr.Textbox(label="ocr keywords", value="姓名，籍贯", 
+                                            info="LLM will find the information you need according to keywords given below")
+                        ocr_output = gr.Textbox(interactive=False,label="ocr output",max_lines=5,
+                                                info="raw output of ocr, you can get text without cleaning from here")
                 with gr.Column():
                     faceoutput = gr.AnnotatedImage()
             btn = gr.Button("recognize",variant="primary")

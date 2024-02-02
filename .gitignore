@@ -2,6 +2,11 @@
 /cv/dbmodel/migrations/
 /cv/upload/
 /cv/statics/temp_image/
+/cv/statics/up_sample/
+/cv/temp/
 *.sqlite3
 *.pyc
+/cv/cv/__pycache__/
+*.py[cod]
+*$py.class
 config.json

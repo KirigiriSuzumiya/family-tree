@@ -46,6 +46,7 @@ urlpatterns = [
     # path(r'baidu', login_required(views.baidu_upload)),
     path("upload_again", login_required(views.upload_again)),
     re_path("baidu_extract/(.*)$", login_required(views.baidu_extract)),
+    re_path("up_sample_extract/(.*)$", login_required(views.up_sample_extract)),
     re_path("social_graph/(.*)$", views.social_graph),
     re_path("social_info/(.*)$", views.social_info),
     re_path("social_info_person/(.*)$", views.social_info_person),

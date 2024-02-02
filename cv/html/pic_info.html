@@ -17,6 +17,7 @@
 	<link rel="stylesheet" href="/static/css/templatemo-style.css">
 	<link rel="stylesheet" href="/static/css/font-awesome.css">
 	<link href="/static/css/theme.css" rel="stylesheet">
+	<script src="/static/js/gcoord.global.prod.js"></script>
 	{% if messages %}
 	<script>
         {% for msg in messages %}
@@ -70,11 +71,18 @@
 		function result(){
 			document.getElementById('result').style.display='block';
 			document.getElementById('origin').style.display='none';
+			document.getElementById('super').style.display='none';
 		}
 
 		function origin(){
 			document.getElementById('result').style.display='none';
 			document.getElementById('origin').style.display='block';
+			document.getElementById('super').style.display='none';
+		}
+		function supersol(){
+			document.getElementById('result').style.display='none';
+			document.getElementById('origin').style.display='none';
+			document.getElementById('super').style.display='block';
 		}
 	</script>
 	<script type="text/javascript">
@@ -139,12 +147,18 @@
 				<h2><i class="fa fa-photo"></i>{{title|default:"照片"}}详情</h2>
 				<div class="center-block text-center weicot_radio" >
 						<input type="radio" name="pic" onclick="origin()" id="p_1"><label for="p_1" >原图</label>
+						{% if origin %}
+						<input type="radio" name="pic" onclick="supersol()" id="p_3" checked><label for="p_3" >原分辨率</label>
+						{% endif %}
 						<input type="radio" name="pic" onclick="result()" id="p_2" checked><label for="p_2" >标注</label>
 				</div>
 			</div>
 			<div class="col-md-10 col-md-offset-1 col-sm-12 mt30">
 				<a id="result" href="/static/{{path}}?v={{random}}" data-lightbox-gallery="portfolio-gallery"><img class="img-responsive center-block" src="/static/{{path}}?v={{random}}" alt="总览图"></a>
 				<a id="origin" href="/static/upload/{{path}}?v={{random}}" data-lightbox-gallery="portfolio-gallery" style="display:None"><img class="img-responsive center-block" src="/static/upload/{{path}}?v={{random}}" alt="原图"></a>
+				{% if origin %}
+				<a id="super" href="/static/{{origin}}?v={{random}}" data-lightbox-gallery="portfolio-gallery" style="display:None"><img class="img-responsive center-block" src="/static/{{origin}}?v={{random}}" alt="原分辨率"></a>
+				{% endif %}
 				<form action="/pic_change/{{path}}" method="POST" enctype="multipart/form-data">
 					{% csrf_token %}
 					<input type="file" name="pic" required="required" accept="image">
@@ -153,7 +167,7 @@
 				<h4 class="col-md-12 col-xs-12">{{path}}基本信息:</h4>
 				<table class="table"><tbody><tr><td></td></tr></tbody></table>
 				<form action="/pic_info_edit/{{path}}" method="post" >
-					<div class="col-md-6 col-sm-12">
+					<div class="col-md-4 col-sm-12">
 
 							{% csrf_token %}
 							标题：<input class="form-control" type="text" name="title" value="{{title|default:''}}">
@@ -161,9 +175,64 @@
 							预估时间：{{time_range}}
 
 					</div>
-					<div class="col-md-6 col-sm-12">
+					<div class="col-md-4 col-sm-12">
 						拍摄背景：<textarea class="form-control"  rows="6" name="info">{{info|default:''}}</textarea>
 					</div>
+					<div class="col-md-4 col-sm-12">
+						<script>
+							function WGS84toBD09() {
+								// 弹窗输入两个浮点数
+								// let num1 = parseFloat(prompt("请输入loc_x:"));
+								// let num2 = parseFloat(prompt("请输入loc_y:"));
+							
+								var result = gcoord.transform(
+									// [num1, num2],    // 经纬度坐标
+									[document.getElementById("loc_x").value, document.getElementById("loc_y").value],
+									gcoord.WGS84,               // 当前坐标系
+									gcoord.BD09                 // 目标坐标系
+								);
+							
+								// 将结果填入表单的输入框中
+								document.getElementById("loc_x").value = result[0]; // 保留两位小数
+								document.getElementById("loc_y").value = result[1]; // 保留两位小数
+								alert("转换成功！");
+							}
+						</script>
+						
+						位置信息：<input class="form-control" type="text" name="loc_info" value="{{loc_info|default:''}}">
+						loc_x：<input class="form-control " type="text" name="loc_x" id="loc_x" value="{{loc_x|default:''}}">
+						loc_y：<input class="form-control" type="text" name="loc_y" id="loc_y" value="{{loc_y|default:''}}">
+						<span class="btn col-md-offset-2 col-md-8 col-xs-offset-2 col-xs-8" onclick="WGS84toBD09()">转换WGS84至BD09</span>
+					</div>
+						<script src="//api.map.baidu.com/api?type=webgl&v=1.0&ak=2nA3yRr0qVsKsjfykAAheoXwncT27Kvi"></script>
+						  <div class="col-md-12 col-xs-12" style="height:400px;" id="map-container"></div>
+							  <script>
+								  var map = new BMapGL.Map('map-container');
+								  map.setMapType(BMAP_SATELLITE_MAP);
+								  var point = new BMapGL.Point({{loc_x|default:"121.510342"}}, {{loc_y|default:"30.83673"}});
+								  map.centerAndZoom(point, 17);
+								  var marker = new BMapGL.Marker(point);  // 创建标注
+								  map.addOverlay(marker);
+								  var opts = {
+									  width: 300,
+									  height: 100,
+									  title: '{{name}}'
+								  };
+								  var infoWindow = new BMapGL.InfoWindow('（{{loc_x|default:"默认经度"}}, {{loc_y|default:"默认纬度"}}）{{loc_info|default:""}}', opts);
+								  map.openInfoWindow(infoWindow, point);
+
+								  marker.addEventListener("click", function(){
+    									map.openInfoWindow(infoWindow, point);
+									});
+
+
+
+								  var scaleCtrl = new BMapGL.ScaleControl();  // 添加比例尺控件
+								  map.addControl(scaleCtrl);
+								  var zoomCtrl = new BMapGL.ZoomControl();  // 添加比例尺控件
+								  map.addControl(zoomCtrl);
+							  </script>
+					    
 					<div class="col-md-2 col-md-offset-5 col-xs-2 col-xs-offset-5 mt30"><button type="submit" class="btn">提交</button></div>
 				</form>
 				<br>

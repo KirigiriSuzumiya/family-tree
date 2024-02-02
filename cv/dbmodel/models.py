@@ -50,6 +50,9 @@ class Image(models.Model):
     title = models.CharField(max_length=200, blank=True, null=True)
     count = models.IntegerField(blank=True, null=True)
     use_baidu = models.BooleanField(default=False)
+    loc_x = models.CharField(max_length=50, blank=True, null=True)
+    loc_y = models.CharField(max_length=50, blank=True, null=True)
+    loc_info = models.CharField(max_length=50, blank=True, null=True)
     def __str__(self):
         return self.path
 
