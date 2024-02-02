@@ -202,14 +202,19 @@
 						位置信息：<input class="form-control" type="text" name="loc_info" value="{{loc_info|default:''}}">
 						loc_x：<input class="form-control " type="text" name="loc_x" id="loc_x" value="{{loc_x|default:''}}">
 						loc_y：<input class="form-control" type="text" name="loc_y" id="loc_y" value="{{loc_y|default:''}}">
-						<span class="btn col-md-offset-2 col-md-8 col-xs-offset-2 col-xs-8" onclick="WGS84toBD09()">转换WGS84至BD09</span>
+						<!-- <span class="btn col-md-offset-2 col-md-8 col-xs-offset-2 col-xs-8" onclick="WGS84toBD09()">转换WGS84至BD09</span> -->
 					</div>
 						<script src="//api.map.baidu.com/api?type=webgl&v=1.0&ak=2nA3yRr0qVsKsjfykAAheoXwncT27Kvi"></script>
 						  <div class="col-md-12 col-xs-12" style="height:400px;" id="map-container"></div>
 							  <script>
 								  var map = new BMapGL.Map('map-container');
 								  map.setMapType(BMAP_SATELLITE_MAP);
-								  var point = new BMapGL.Point({{loc_x|default:"121.510342"}}, {{loc_y|default:"30.83673"}});
+								  var loc_res = gcoord.transform(
+									[{{loc_x|default:121.42011054972664}}, {{loc_y|default:31.145494448340546}}],    // 经纬度坐标
+									gcoord.WGS84,               // 当前坐标系
+									gcoord.BD09                 // 目标坐标系
+								);
+								  var point = new BMapGL.Point(loc_res[0],loc_res[1]);
 								  map.centerAndZoom(point, 17);
 								  var marker = new BMapGL.Marker(point);  // 创建标注
 								  map.addOverlay(marker);
@@ -218,6 +223,7 @@
 									  height: 100,
 									  title: '{{name}}'
 								  };
+								  
 								  var infoWindow = new BMapGL.InfoWindow('（{{loc_x|default:"默认经度"}}, {{loc_y|default:"默认纬度"}}）{{loc_info|default:""}}', opts);
 								  map.openInfoWindow(infoWindow, point);
 

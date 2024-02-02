@@ -176,7 +176,12 @@
 							  <script>
 								  var map = new BMapGL.Map('map-container');
 								  map.setMapType(BMAP_SATELLITE_MAP);
-								  var point = new BMapGL.Point({{loc1_x|default:"121.510342"}}, {{loc1_y|default:"30.83673"}});
+								  var loc_res_1 = gcoord.transform(
+									[{{loc1_x|default:121.42011054972664}}, {{loc1_y|default:31.145494448340546}}],    // 经纬度坐标
+									gcoord.WGS84,               // 当前坐标系
+									gcoord.BD09                 // 目标坐标系
+								);
+								  var point = new BMapGL.Point(loc_res_1[0],loc_res_1[1]);
 								  map.centerAndZoom(point, 17);
 								  var marker = new BMapGL.Marker(point);  // 创建标注
 								  map.addOverlay(marker);
@@ -187,8 +192,12 @@
 								  };
 								  var infoWindow = new BMapGL.InfoWindow('（{{loc1_x|default:"默认经度"}}, {{loc1_y|default:"默认纬度"}}）{{loc1_info|default:""}}', opts);
 								  map.openInfoWindow(infoWindow, point);
-
-								  var point1 = new BMapGL.Point({{loc2_x|default:"121.510342"}}, {{loc2_y|default:"30.83673"}});
+								  var loc_res_1 = gcoord.transform(
+									[{{loc2_x|default:121.42011054972664}}, {{loc2_y|default:31.145494448340546}}],    // 经纬度坐标
+									gcoord.WGS84,               // 当前坐标系
+									gcoord.BD09                 // 目标坐标系
+								);
+								  var point1 = new BMapGL.Point(loc_res_1[0],loc_res_1[1]);
 								  var marker1 = new BMapGL.Marker(point1);  // 创建标注
 								  map.addOverlay(marker1);
 								  var opts = {
@@ -198,7 +207,12 @@
 								  };
 								  var infoWindow1 = new BMapGL.InfoWindow('（{{loc2_x|default:"默认经度"}}, {{loc2_y|default:"默认纬度"}}）{{loc2_info|default:""}}', opts);
 
-								  var point2 = new BMapGL.Point({{loc3_x|default:"121.510342"}}, {{loc3_y|default:"30.83673"}});
+								  var loc_res_1 = gcoord.transform(
+									[{{loc3_x|default:121.42011054972664}}, {{loc3_y|default:31.145494448340546}}],    // 经纬度坐标
+									gcoord.WGS84,               // 当前坐标系
+									gcoord.BD09                 // 目标坐标系
+								);
+								  var point2 = new BMapGL.Point(loc_res_1[0],loc_res_1[1]);
 								  var marker2 = new BMapGL.Marker(point2);  // 创建标注
 								  map.addOverlay(marker2);
 								  var opts = {
@@ -579,7 +593,7 @@
 								<fieldset>
 									<legend><h3 style="color:white">时空信息</h3></legend>
 									<div class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">
-										<span class="btn" onclick="WGS84toBD09()">转换WGS84到BD09坐标</span>
+										<!-- <span class="btn" onclick="WGS84toBD09()">转换WGS84到BD09坐标</span> -->
 									</div>
 									
 									<div class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">
