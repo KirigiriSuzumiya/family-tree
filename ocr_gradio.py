@@ -127,7 +127,7 @@ def face_recognize(image,ocr_key, method, search_check, peo_id):
         
 
 def chat_fun(msg, history):
-    url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions_pro?access_token=" + ocr_chat.get_access_token()
+    url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/ernie_bot_8k?access_token=" + ocr_chat.get_access_token()
     payload = []
     for i in history:
         payload.append({"role": "user",

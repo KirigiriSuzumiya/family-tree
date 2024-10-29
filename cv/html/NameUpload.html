@@ -111,7 +111,7 @@
 			<div class="col-md-8 col-md-offset-2 col-sm-12 mt30">
 				<a href="{% static total_path%}" data-lightbox-gallery="portfolio-gallery"><img class="img-responsive center-block" src="{% static total_path%}" alt="总览图"></a>
 				<a class="col-md-6 btn center-block" href="/baidu_extract/{{total_path}}">使用百度api重新识别</a>
-				<a class="col-md-6 btn center-block" href="/up_sample_extract/{{total_path}}">使用RealCUGAN(2x超分辨率)+百度api重新识别</a>
+				<a class="col-md-6 btn center-block" href="/up_sample_extract/{{total_path}}">使用Codeformer+RealEsrgan+百度api</a>
 				<h4>不清楚照片中的人是谁？试试“家·谱”的合照重识功能！</h4>
 				<div class="mt30">您可以选择前往<a class="btn text-center" href="/pic_info/{{total_path}}">合照详情>></a>完善合照信息；</div>
 				<div class="mt30">也可以选择前往<a class="btn text-center" href="/recog_again/{{total_path}}" onclick="openDialog();">合照重识>></a>检索已有人脸库来帮助您完成录入！</div>

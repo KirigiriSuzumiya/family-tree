@@ -26,6 +26,7 @@ import json
 import shutil
 import cv2
 import subprocess
+from io import BytesIO
 
 # -*- coding: CP936 -*-
 config_path = os.path.join(os.path.dirname(__file__),"..","..","config.json")
@@ -105,30 +106,68 @@ def baidu_extract(request, img_path):
     return render(request, 'NameUpload.html', context)
 
 
+def pic_compress(pic_path, target_size=5000, quality=90, step=5, pic_type='.jpg'):
+    # 读取图片bytes
+    with open(pic_path, 'rb') as f:
+        pic_byte = f.read()
+
+    img_np = np.frombuffer(pic_byte, np.uint8)
+    img_cv = cv2.imdecode(img_np, cv2.IMREAD_ANYCOLOR)
+
+    current_size = len(pic_byte) / 1024
+    print("图片压缩前的大小为(KB)：", current_size)
+    while current_size > target_size:
+        pic_byte = cv2.imencode(pic_type, img_cv, [int(cv2.IMWRITE_JPEG_QUALITY), quality])[1]
+        if quality - step < 0:
+            break
+        quality -= step
+        current_size = len(pic_byte) / 1024
+
+    # 保存图片
+    out_path = pic_path[:pic_path.rfind(".")]+".jpg"
+    with open(out_path, 'wb') as f:
+        f.write(BytesIO(pic_byte).getvalue())
+
+    return out_path
+
+
 def up_sample_extract(request, img_path):
     img_path_abs = os.path.join(BASE_DIR, "upload", img_path)
     time_now = str(time.time())
-    Final2x_config = {
-        "gpuid": -1,
-        "inputpath": [img_path_abs],
-        "model": "RealCUGAN-pro",
-        "modelscale": 2,
-        "modelnoise": -1,
-        "outputpath": os.path.join(BASE_DIR, "statics", "up_sample"),
-        "targetscale": 2.0,
-        "tta": False}
-    json_path = os.path.join(BASE_DIR,"temp",time_now+".json")
-    json.dump(Final2x_config, open(json_path,"w"))
-    subprocess.call(f"/usr/local/bin/Final2x-core -y {json_path}", shell=True)
+    # Final2x_config = {
+    #     "gpuid": -1,
+    #     "inputpath": [img_path_abs],
+    #     "model": "RealCUGAN-pro",
+    #     "modelscale": 2,
+    #     "modelnoise": -1,
+    #     "outputpath": os.path.join(BASE_DIR, "statics", "up_sample"),
+    #     "targetscale": 2.0,
+    #     "tta": False}
+    # json_path = os.path.join(BASE_DIR,"temp",time_now+".json")
+    # json.dump(Final2x_config, open(json_path,"w"))
+    # subprocess.call(f"/usr/local/bin/Final2x-core -y {json_path}", shell=True)
+    url = "http://110.42.255.139:33082/upsampler?url=http://nenva.com/static/upload/"+img_path
+    payload = {}
+    headers = {
+    'Access-Control-Allow-Origin': '*'
+    }
+    response = requests.request("GET", url, headers=headers, data=payload)
+    up_img_path = os.path.join(BASE_DIR, "statics", "up_sample", time_now+img_path[img_path.rfind("."):])
+    with open(up_img_path, "wb") as fp:
+        fp.write(response.content)
     try:
-        temp_img = cv2.imread(os.path.join(BASE_DIR,"statics","up_sample","outputs","2.0x-"+img_path[:img_path.rfind(".")]+".png"))
+        cv2.imread(up_img_path)
+        with open(up_img_path, 'rb') as fp:
+            if len(fp.read())/1024 >= 5125:
+                up_img_path = pic_compress(up_img_path)
     except:
         messages.error(request, "上采样失败")
+        os.remove(up_img_path)
         return HttpResponseRedirect("/faceupload")
-    new_img_path = time_now + ".png"
-    shutil.copyfile(os.path.join(BASE_DIR,"statics","up_sample","outputs","2.0x-"+img_path[:img_path.rfind(".")]+".png"),
+    new_img_path = time_now + img_path[img_path.rfind("."):]
+    shutil.copyfile(up_img_path,
                     os.path.join(BASE_DIR,"upload",new_img_path))
-    os.remove(os.path.join(BASE_DIR,"statics","up_sample","outputs","2.0x-"+img_path[:img_path.rfind(".")]+".png"))
+    os.remove(up_img_path)
     shutil.copyfile(os.path.join(BASE_DIR,"upload",img_path),
                     os.path.join(BASE_DIR,"statics","up_sample",new_img_path))
     try:
