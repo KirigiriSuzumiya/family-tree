@@ -124,7 +124,18 @@
         }
 		
     </script>
-
+	<script type="text/javascript">
+        function addDetailParamAndReload() {
+            // 获取当前URL
+            var currentUrl = window.location.href;
+            // 创建URL对象
+            var url = new URL(currentUrl);
+            // 设置或更新 detail 参数为 1
+            url.searchParams.set('detail', '1');
+            // 将页面重定向到带有新参数的URL，这将导致页面刷新
+            window.location.href = url.href;
+        }
+    </script>
 </head>
 
 <body>
@@ -262,6 +273,7 @@
 										<h2 class="col-md-12 col-xs-12" style="color:white;"><i class="fa fa-user"></i>可交互家谱展示</h2>
 										<div class="col-md-8 col-m-offset-2 col-xs-12">
 											<div>
+												<span onclick="addDetailParamAndReload()" class="main-btn"><a href="">加载数据并刷新页面</a>
 												<script>
 													class fullScreen {
 														/**
@@ -468,17 +480,20 @@
 								<div class="row">
 										<div class="right-content">
 											<h2 class="col-md-12 col-xs-12" style="color:white;"><i class="fa fa-users">社交关系可视化</i></h2><br><br><br>
+												<span onclick="loadSocialGraph()" class="main-btn"><a href="">加载数据</a>
 												<div id="bar" style="width:100%; height:300px; background-color: white;"></div>
 												<script>
-													document.getElementById("bar").style.height=window.screen.height;
+													function loadSocialGraph() {
+														document.getElementById("bar").style.height=window.screen.height;
+														
+														$(
+															function () {
+																fetchData(chart);
+															}
+														);
+													}
+													
 													var chart = echarts.init(document.getElementById('bar'), 'white', {renderer: 'canvas'});
-
-													$(
-														function () {
-															fetchData(chart);
-														}
-													);
-
 													function fetchData() {
 														$.ajax({
 															type: "get",

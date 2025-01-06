@@ -415,21 +415,27 @@ def facelist(request, id):
             token_age = None
         context['facelist'].append([upload_time, path, count, re_path, token_time, token_age])
     tree_function_re = familytree(request, id)
-    context["familytreepath"], family = tree_function_re["path"], tree_function_re["check"]
-    # context["familytreepath"], family= None,[]
-    for i in family:
-        context["family"].append([i.id, i.name])
-    context["known"]=[]
-    FaceImage.objects.filter(name=People.objects.get(id=id))
-    for group_photo in FaceImage.objects.filter(name=People.objects.get(id=id)):
-        group_photo = group_photo.image
-        faces = FaceImage.objects.filter(image=group_photo)
-        for face in faces:
-            if [face.name.id, face.name.name] in context["known"]:
-                continue
-            else:
-                context["known"].append([face.name.id, face.name.name])
-    context["new_graph"] = json.dumps(familytree_info(id), ensure_ascii=False)
+    if request.GET.get("detail"):
+        context["familytreepath"], family = tree_function_re["path"], tree_function_re["check"]
+        
+        for i in family:
+            context["family"].append([i.id, i.name])
+        context["known"]=[]
+        FaceImage.objects.filter(name=People.objects.get(id=id))
+        for group_photo in FaceImage.objects.filter(name=People.objects.get(id=id)):
+            group_photo = group_photo.image
+            faces = FaceImage.objects.filter(image=group_photo)
+            for face in faces:
+                if [face.name.id, face.name.name] in context["known"]:
+                    continue
+                else:
+                    context["known"].append([face.name.id, face.name.name])
+        context["new_graph"] = json.dumps(familytree_info(id), ensure_ascii=False)
+    else:
+        context["familytreepath"], family= None,[]
+        context["family"] = []
+        context["known"] = []
+        context["new_graph"] = ""
     return render(request, 'facelist.html', context)
 
 
