@@ -23,15 +23,6 @@ class People(models.Model):
     mother = models.CharField(max_length=50, blank=True, null=True)
     kids = models.JSONField(blank=True, null=True)
     info = models.CharField(max_length=50000, blank=True, null=True)
-    loc1_x = models.CharField(max_length=50, blank=True, null=True)
-    loc1_y = models.CharField(max_length=50, blank=True, null=True)
-    loc1_info = models.CharField(max_length=50, blank=True, null=True)
-    loc2_x = models.CharField(max_length=50, blank=True, null=True)
-    loc2_y = models.CharField(max_length=50, blank=True, null=True)
-    loc2_info = models.CharField(max_length=50, blank=True, null=True)
-    loc3_x = models.CharField(max_length=50, blank=True, null=True)
-    loc3_y = models.CharField(max_length=50, blank=True, null=True)
-    loc3_info = models.CharField(max_length=50, blank=True, null=True)
     family_name = models.CharField(max_length=100, blank=True, null=True)
 
     visited = models.IntegerField(default=0)
@@ -68,3 +59,9 @@ class FaceImage(models.Model):
         return self.path
 
 
+class Location(models.Model):
+    belongs_to = models.ForeignKey(People, on_delete=models.CASCADE)
+    loc_x = models.CharField(max_length=50, blank=True, null=True)
+    loc_y = models.CharField(max_length=50, blank=True, null=True)
+    date = models.DateTimeField(blank=True, null=True)
+    description = models.CharField(max_length=5000, blank=True, null=True)

@@ -11,7 +11,7 @@ import time
 from pathlib import Path
 from .codes import FaceRecognition, FaceExtractor
 from .settings import BASE_DIR
-from dbmodel.models import FaceImage, People
+from dbmodel.models import FaceImage, People, Location
 from dbmodel.models import Image as image_db
 from django.contrib import auth
 from django.contrib.auth.models import User
@@ -385,24 +385,17 @@ def facelist(request, id):
     else:
         context['kids'] = ''
     context['info'] = name_obj.info
-    context['loc1_x'] = name_obj.loc1_x
-    context['loc1_y'] = name_obj.loc1_y
-    context['loc1_info'] = name_obj.loc1_info
-    context['loc2_x'] = name_obj.loc2_x
-    context['loc2_y'] = name_obj.loc2_y
-    context['loc2_info'] = name_obj.loc2_info
-    context['loc3_x'] = name_obj.loc3_x
-    context['loc3_y'] = name_obj.loc3_y
-    context['loc3_info'] = name_obj.loc3_info
     context['institute'] = name_obj.institute
     context['edu'] = name_obj.edu
     context['family'] = []
+    # get face images
     face_obj_list = FaceImage.objects.filter(name=name_obj).order_by("-image__token_time")
     try:
         context['first_pic'] = '/static/' + face_obj_list[0].path
     except:
         context['first_pic'] = '/static/unknown.jpeg'
     count = 0
+    context['locations'] = []
     for face_obj in face_obj_list:
         path = '/static/' + face_obj.path
         upload_time = face_obj.upload_time
@@ -414,8 +407,29 @@ def facelist(request, id):
         except:
             token_age = None
         context['facelist'].append([upload_time, path, count, re_path, token_time, token_age])
-    tree_function_re = familytree(request, id)
+        if face_obj.image.loc_x:
+            context['locations'].append({
+                "id": f"image_{face_obj.image.id}",
+                "loc_x": face_obj.image.loc_x,
+                "loc_y": face_obj.image.loc_y,
+                "info": face_obj.image.loc_info,
+                "path": face_obj.image.path,
+                "date": str(face_obj.image.token_time).replace('年', '-').replace('月', '-').replace('日', '-').replace(' ', 'T')
+            })
+    # get locations
+    location_obj_list = Location.objects.filter(belongs_to=id).order_by("-date")
+    for location in location_obj_list:
+        print(location)
+        context['locations'].append({
+            "id": str(location.id),
+            "loc_x": location.loc_x,
+            "loc_y": location.loc_y,
+            "info": location.description,
+            "date": str(location.date).replace('年', '-').replace('月', '-').replace('日', '-').replace(' ', 'T')
+        })
+    # family tree visualization
     if request.GET.get("detail"):
+        tree_function_re = familytree(request, id)
         context["familytreepath"], family = tree_function_re["path"], tree_function_re["check"]
         
         for i in family:
@@ -489,15 +503,6 @@ def face_edit(request, re_name):
         return HttpResponseRedirect("/facelist/%s" % people_obj.id)
 
     people_obj.info = request.POST['info']
-    people_obj.loc1_x = request.POST['loc1_x']
-    people_obj.loc1_y = request.POST['loc1_y']
-    people_obj.loc1_info = request.POST['loc1_info']
-    people_obj.loc2_x = request.POST['loc2_x']
-    people_obj.loc2_y = request.POST['loc2_y']
-    people_obj.loc2_info = request.POST['loc2_info']
-    people_obj.loc3_x = request.POST['loc3_x']
-    people_obj.loc3_y = request.POST['loc3_y']
-    people_obj.loc3_info = request.POST['loc3_info']
 
     people_obj.xing = request.POST['xing']
     people_obj.ming = request.POST['ming']
@@ -509,6 +514,32 @@ def face_edit(request, re_name):
     people_obj.located_time = request.POST['located_time']
     people_obj.save()
     messages.error(request, people_obj.name + "已修改")
+    key: str
+    location_set = set()
+    for key in list(request.POST.keys()):
+        if key.startswith("loc_"):
+            loc_id = key.split("_")[-1]
+            if loc_id == "new":
+                if "new" not in location_set and request.POST["loc_x_new"]:
+                    loc_obj = Location(
+                        belongs_to=people_obj,
+                        loc_x=request.POST["loc_x_new"],
+                        loc_y=request.POST["loc_y_new"],
+                        date=request.POST["loc_date_new"] if request.POST["loc_date_new"] else None,
+                        description=request.POST["loc_info_new"]
+                    )
+                    location_set.add("new ")
+                    loc_obj.save()
+            else:
+                if loc_id not in location_set:
+                    loc_obj = Location.objects.get(id=int(loc_id))
+                    loc_obj.loc_x=request.POST["loc_x_"+loc_id]
+                    loc_obj.loc_y=request.POST["loc_y_"+loc_id]
+                    loc_obj.date=request.POST["loc_date_"+loc_id] if request.POST["loc_date_"+loc_id] else None
+                    loc_obj.description=request.POST["loc_info_"+loc_id]
+                    location_set.add(loc_id)
+                    loc_obj.save()
+
     return HttpResponseRedirect("/facelist/%s" % people_obj.id)
 
 
@@ -1400,11 +1431,10 @@ def data_transfer(request):
 
 
 def person_check(peo_obj):
-    if peo_obj.loc1_x:
+    if len(Location.objects.filter(belongs_to=peo_obj.id)):
         return True
     else:
         return False
-    
 
 def info2excel(request):
     index_dict = ["起点","起点id","终点","终点id","边权","角色","备注"]

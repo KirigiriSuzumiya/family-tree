@@ -17,8 +17,6 @@
 	<link rel="stylesheet" href="/static/facelist/css/family-chart.css">
 	<script src="/static/facelist/js/d3.min.js"></script>
 	<script src="/static/facelist/js/family-chart.min.js"></script>
-	<!-- <script src="https://unpkg.com/d3@6"></script>
-    <script src="https://unpkg.com/family-chart"></script> -->
 	 <script src=""></script>
 	<script src="/static/facelist/js/jquery.min.js"></script>
 	<script type="text/javascript" src="/static/js/echarts.min.js"></script>
@@ -156,7 +154,7 @@
 	  </div>
 	  <ul>
 		  <li><a href="#1"><i class="fa fa-home"></i> <em>概述</em></a></li>
-		  <li><a href="#2"><i class="fa fa-map"></i> <em>地图</em></a></li>
+		  <li><a href="#2"><i class="fa fa-map"></i> <em>轨迹</em></a></li>
 		  <li><a href="#3"><i class="fa fa-user"></i> <em>家谱</em></a></li>
 		  <li><a href="#4"><i class="fa fa-users"></i> <em>社群</em></a></li>
 		  <li><a href="#5"><i class="fa fa-image"></i> <em>图像</em></a></li>
@@ -182,81 +180,99 @@
 		<div class="content second-content">
 			<div class="container-fluid">
 				<div class="col-md-12 third-content">
-						<h2 class="col-md-12 col-xs-12" style="color:white;"><i class="fa fa-map"></i>地图标记展示</h2>
-						<script src="//api.map.baidu.com/api?type=webgl&v=1.0&ak=2nA3yRr0qVsKsjfykAAheoXwncT27Kvi"></script>
-						  <div class="col-md-12 col-xs-12" style="height:400px;" id="map-container"></div>
-							  <script>
-								  var map = new BMapGL.Map('map-container');
-								  map.setMapType(BMAP_SATELLITE_MAP);
-								  var loc_res_1 = gcoord.transform(
-									[{{loc1_x|default:121.42011054972664}}, {{loc1_y|default:31.145494448340546}}],    // 经纬度坐标
-									gcoord.WGS84,               // 当前坐标系
-									gcoord.BD09                 // 目标坐标系
-								);
-								  var point = new BMapGL.Point(loc_res_1[0],loc_res_1[1]);
-								  map.centerAndZoom(point, 17);
-								  var marker = new BMapGL.Marker(point);  // 创建标注
-								  map.addOverlay(marker);
-								  var opts = {
-									  width: 300,
-									  height: 100,
-									  title: '{{name}}'
-								  };
-								  var infoWindow = new BMapGL.InfoWindow('（{{loc1_x|default:"默认经度"}}, {{loc1_y|default:"默认纬度"}}）{{loc1_info|default:""}}', opts);
-								  map.openInfoWindow(infoWindow, point);
-								  var loc_res_1 = gcoord.transform(
-									[{{loc2_x|default:121.42011054972664}}, {{loc2_y|default:31.145494448340546}}],    // 经纬度坐标
-									gcoord.WGS84,               // 当前坐标系
-									gcoord.BD09                 // 目标坐标系
-								);
-								  var point1 = new BMapGL.Point(loc_res_1[0],loc_res_1[1]);
-								  var marker1 = new BMapGL.Marker(point1);  // 创建标注
-								  map.addOverlay(marker1);
-								  var opts = {
-									  width: 300,
-									  height: 100,
-									  title: '{{name}}'
-								  };
-								  var infoWindow1 = new BMapGL.InfoWindow('（{{loc2_x|default:"默认经度"}}, {{loc2_y|default:"默认纬度"}}）{{loc2_info|default:""}}', opts);
-
-								  var loc_res_1 = gcoord.transform(
-									[{{loc3_x|default:121.42011054972664}}, {{loc3_y|default:31.145494448340546}}],    // 经纬度坐标
-									gcoord.WGS84,               // 当前坐标系
-									gcoord.BD09                 // 目标坐标系
-								);
-								  var point2 = new BMapGL.Point(loc_res_1[0],loc_res_1[1]);
-								  var marker2 = new BMapGL.Marker(point2);  // 创建标注
-								  map.addOverlay(marker2);
-								  var opts = {
-									  width: 300,
-									  height: 100,
-									  title: '{{name}}'
-								  };
-								  var infoWindow2 = new BMapGL.InfoWindow('（{{loc3_x|default:"默认经度"}}, {{loc3_y|default:"默认纬度"}}）{{loc3_info|default:""}}', opts);
-
-
-
-								  marker.addEventListener("click", function(){
-    									map.openInfoWindow(infoWindow, point);
+						<h2 class="col-md-12 col-xs-12" style="color:white;"><i class="fa fa-map"></i>人物轨迹展示</h2>
+						<script src="https://api.map.baidu.com/api?v=1.0&&type=webgl&ak=2nA3yRr0qVsKsjfykAAheoXwncT27Kvi"></script>
+						<script type="text/javascript" src="//api.map.baidu.com/library/TrackAnimation/src/TrackAnimation_min.js"></script>
+						<div class="col-md-12 col-xs-12" style="height:400px;" id="map-container"></div>
+							<script>
+								var map = new BMapGL.Map('map-container');
+								var points = [];
+								map.setMapType(BMAP_SATELLITE_MAP);
+								{% for location in locations %}
+									var loc_res_{{ location.id }} = gcoord.transform(
+										[{{location.loc_x|default:121.42011054972664}}, {{location.loc_y|default:31.145494448340546}}],    // 经纬度坐标
+										gcoord.WGS84,               // 当前坐标系
+										gcoord.BD09                 // 目标坐标系
+									);
+									var point{{ location.id }} = new BMapGL.Point(loc_res_{{ location.id }}[0],loc_res_{{ location.id }}[1]);
+									points.push(point{{ location.id }});
+									var marker{{ location.id }} = new BMapGL.Marker(point{{ location.id }});  // 创建标注
+									map.addOverlay(marker{{ location.id }});
+									// 信息窗口组件及内容
+									var info_context = document.createElement('div');
+									var location_div = document.createElement('div');
+									info_context.appendChild(location_div)
+									location_div.appendChild(document.createTextNode('location:({{location.loc_x}}, {{location.loc_y}})'))
+									var date_div = document.createElement('div');
+									info_context.appendChild(date_div)
+									date_div.appendChild(document.createTextNode('date:{{location.date|default:""}}'))
+									var info_div = document.createElement('div');
+									info_context.appendChild(info_div)
+									info_div.appendChild(document.createTextNode('info:{{location.info|default:""}}'))
+									{% if 'image' in location.id %}
+										var img = document.createElement('img');
+										// 设置图片的属性
+										img.src = '/static/upload/{{location.path}}'; // 替换为实际的图片路径
+										// 使用内联样式来设置图片的响应式属性
+										img.style.width = '100%';            // 图片宽度为100%
+										img.style.maxWidth = '100%';         // 图片的最大宽度为100%
+										img.style.height = 'auto';           // 自动调整高度以保持比例
+										// 如果你想要确保图片不会超过某个最大高度，可以设置max-height
+										// img.style.maxHeight = '500px';
+										info_context.appendChild(img);
+										source_div = document.createElement('div');
+										info_context.appendChild(source_div);
+										source_div.appendChild(document.createTextNode('source:image'));
+										var link_div = document.createElement('div');
+										var link_a = document.createElement('a');
+										link_a.href = '/pic_info/{{location.path}}'; // 替换为目标链接
+										link_a.textContent = 'link: {{location.path}}'; // 显示的链接文本
+										link_a.style.color = '#337ab7';
+										// 添加超链接到link_div中
+										link_div.appendChild(link_a);
+										// 将link_div添加到info_context中
+										info_context.appendChild(link_div);
+									{% else %}
+										source_div = document.createElement('div');
+										info_context.appendChild(source_div);
+										source_div.appendChild(document.createTextNode('source:manual'));
+									{% endif %}
+									var opts = {
+										width: 300,
+										height: 0,
+										title: '{{name}}'
+									};
+									var infoWindow{{ location.id }} = new BMapGL.InfoWindow(info_context, opts);
+									marker{{ location.id }}.addEventListener("click", function(){
+										map.openInfoWindow(infoWindow{{ location.id }}, point{{ location.id }});
 									});
-								  marker1.addEventListener("click", function(){
-    									map.openInfoWindow(infoWindow1, point1);
-									});
-								  marker2.addEventListener("click", function(){
-    									map.openInfoWindow(infoWindow2, point2);
-									});
-
-
-
-								  var scaleCtrl = new BMapGL.ScaleControl();  // 添加比例尺控件
-								  map.addControl(scaleCtrl);
-								  var zoomCtrl = new BMapGL.ZoomControl();  // 添加比例尺控件
-								  map.addControl(zoomCtrl);
-							  </script>
-						<h4 class="btn" onclick="map.openInfoWindow(infoWindow, point);">标点1&nbsp;{% if not loc1_x %}待补充{% endif %}</h4>
-						<h4 class="btn" onclick="map.openInfoWindow(infoWindow1, point1);">标点2&nbsp;{% if not loc2_x %}待补充{% endif %}</h4>
-						<h4 class="btn" onclick="map.openInfoWindow(infoWindow2, point2);">标点3&nbsp;{% if not loc3_x %}待补充{% endif %}</h4>
-					    <h4 class="main-btn"><a href="#6">补充地图标点信息>></a></h4>
+									map.centerAndZoom(point{{ location.id }}, 17);
+								{% endfor %}
+								// 添加轨迹动画
+								var pl = new BMapGL.Polyline(points, {strokeColor:"red", strokeWeight:2, strokeOpacity:0.5});
+								var trackAni = new BMapGLLib.TrackAnimation(map, pl, {
+									overallView: true, // 动画完成后自动调整视野到总览
+									tilt: 30,          // 轨迹播放的角度，默认为55
+									duration: 20000,   // 动画持续时长，默认为10000，单位ms
+									delay: 3000        // 动画开始的延迟，默认0，单位ms
+								});
+								var scaleCtrl = new BMapGL.ScaleControl();  // 添加比例尺控件
+								map.addControl(scaleCtrl);
+								var zoomCtrl = new BMapGL.ZoomControl();  // 添加比例尺控件
+								map.addControl(zoomCtrl);
+								function startTrackAni(){
+									trackAni.start();
+								}
+							</script>
+						<h4 class="btn" onclick="startTrackAni();" style="margin-bottom: 20px;">播放轨迹动画</h4>
+						<br>
+						<p class="col-md-12 col-xs-12">
+							<h2 class="col-md-12 col-xs-12" style="color:white;">轨迹标点</h2>
+							{% for location in locations %}
+								<h4 class="btn" onclick="map.openInfoWindow(infoWindow{{ location.id }}, point{{location.id}});">标点{{location.id}}&nbsp;</h4>
+							{% endfor %}
+							<h4 class="btn"><a href="#6">补充地图标点信息>></a></h4>
+						</p>
 				</div>
 			</div>
 		</div>
@@ -603,31 +619,29 @@
 									</h5>
 
 								</fieldset>
+								{% for location in locations %}
+								{% if 'image' not in location.id %}
+									<fieldset>
+										<legend><h3 style="color:white">标点{{location.id}}</h3></legend>
+										<div class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">
+											<h5 class="col-md-5 col-xs-5"><input type="text" name="loc_x_{{location.id}}" value="{{location.loc_x|default:''}}" placeholder="标点经度"></h5>
+											<h5 class="col-md-5 col-xs-5 col-md-offset-2 col-xs-offset-2"><input type="text" name="loc_y_{{location.id}}" value="{{location.loc_y|default:''}}" placeholder="标点纬度"></h5>
+											<h5 class="col-md-12 col-xs-12"><input type="text" name="loc_info_{{location.id}}" value="{{location.info|default:''}}" placeholder="标点注释"></h5>
+											<h5 class="col-md-12 col-xs-12"><input type="datetime-local" name="loc_date_{{location.id}}" value="{{location.date|default:''}}"></h5>
+										</div>
+									</fieldset>
+								{% endif %}
+								{% endfor %}
 								<fieldset>
-									<legend><h3 style="color:white">时空信息</h3></legend>
-									<div class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">
-										<!-- <span class="btn" onclick="WGS84toBD09()">转换WGS84到BD09坐标</span> -->
-									</div>
-									
-									<div class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">
-										<h5 class="col-md-12 col-xs-12"><input type="text" name="located_time" value="{{located_time|default:''}}" placeholder="在华时间 输入示例：20220716-20220718 空格分隔两段时间"></h5>
-										<h5 class="col-md-12 col-xs-12"></h5>
-									</div>
-									<div class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">
-										<h5 class="col-md-5 col-xs-5"><input type="text" id="loc_x_1" name="loc1_x" value="{{loc1_x|default:''}}" placeholder="标点1经度"></h5>
-										<h5 class="col-md-5 col-xs-5 col-md-offset-2 col-xs-offset-2"><input type="text" id="loc_y_1" name="loc1_y" value="{{loc1_y|default:''}}" placeholder="标点1纬度"></h5>
-										<h5 class="col-md-12 col-xs-12"><input type="text" name="loc1_info" value="{{loc1_info|default:''}}" placeholder="标点1注释"></h5>
-									</div>
-									<div class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">
-										<h5 class="col-md-5 col-xs-5"><input type="text" id="loc_x_2" name="loc2_x" value="{{loc2_x|default:''}}" placeholder="标点2经度"></h5>
-										<h5 class="col-md-5 col-xs-5 col-md-offset-2 col-xs-offset-2"><input type="text" id="loc_y_2" name="loc2_y" value="{{loc2_y|default:''}}" placeholder="标点2纬度"></h5>
-										<h5 class="col-md-12 col-xs-12"><input type="text" name="loc2_info" value="{{loc2_info|default:''}}" placeholder="标点2注释"></h5>
-									</div>
-									<div class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">
-										<h5 class="col-md-5 col-xs-5"><input type="text" id="loc_x_3" name="loc3_x" value="{{loc3_x|default:''}}" placeholder="标点3经度"></h5>
-										<h5 class="col-md-5 col-xs-5 col-md-offset-2 col-xs-offset-2"><input type="text" id="loc_y_3" name="loc3_y" value="{{loc3_y|default:''}}" placeholder="标点3纬度"></h5>
-										<h5 class="col-md-12 col-xs-12"><input type="text" name="loc3_info" value="{{loc3_info|default:''}}" placeholder="标点3注释"></h5>
-									</div>
+									<details> <summary class="btn btn-default">新建标点</summary>
+										<legend><h3 style="color:white">新建标点</h3></legend>
+										<div class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">
+											<h5 class="col-md-5 col-xs-5"><input type="text" name="loc_x_new" placeholder="新建标点经度"></h5>
+											<h5 class="col-md-5 col-xs-5 col-md-offset-2 col-xs-offset-2"><input type="text" name="loc_y_new" placeholder="新建标点纬度"></h5>
+											<h5 class="col-md-12 col-xs-12"><input type="text" name="loc_info_new" placeholder="新建标点注释"></h5>
+											<h5 class="col-md-12 col-xs-12"><input type="datetime-local" name="loc_date_new"></h5>
+										</div>
+									</details>
 								</fieldset>
 
 							</div>
@@ -643,6 +657,13 @@
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="datetime-local" name="death_date" value="{{death_date|default:''}}" placeholder="去世日期"></h5>
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="institute" value="{{institute|default:''}}" placeholder="单位机构"></h5>
 									<h5 class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1"><input type="text" name="edu" value="{{edu|default:''}}" placeholder="教育"></h5>
+								</fieldset>
+								<fieldset>
+									<legend><h3 style="color:white">生卒信息</h3></legend>
+									<div class="col-md-10 col-md-offset-1 col-xs-10 col-xs-offset-1">
+										<h5 class="col-md-12 col-xs-12"><input type="text" name="located_time" value="{{located_time|default:''}}" placeholder="在华时间 输入示例：20220716-20220718 空格分隔两段时间"></h5>
+										<h5 class="col-md-12 col-xs-12"></h5>
+									</div>
 								</fieldset>
 								<fieldset>
 									<legend><h3 style="color:white">人物概述</h3></legend>
