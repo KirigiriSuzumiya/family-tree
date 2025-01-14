@@ -170,8 +170,8 @@
 				  <div class="author-image"><img src="{{first_pic}}" alt=""></div>
 			  </div>
 			  <div class="col-md-9">
-				  <h2>{{name}}</h2>
-				  <p>{{info|default:"<p>没有留下概述。</p><div class='main-btn'><a href='#6'>去补充>></a></div>"|safe}}</p>
+				  <h2 style="white-space: pre-wrap;">{{name}} {{first_name|default:""}} {{middle_name|default:""}} {{last_name|default:""}}</h2>
+				  <p style="white-space: pre-wrap;">{{info|default:"<p>没有留下概述。</p><div class='main-btn'><a href='#6'>去补充>></a></div>"|safe}}</p>
 			  </div>
 		  </div>
 		</div>
