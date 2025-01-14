@@ -1,0 +1,8 @@
+{
+    "face_api_key":"",
+    "face_secret_key":"",
+    "huggingface_token":"",
+    "chat_api_key":"",
+    "chat_secret_key": "",
+    "chat_app_id": ""
+}
