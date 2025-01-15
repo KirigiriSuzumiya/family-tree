@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
 	{% load static %}
-	<title>家·谱——合照列表</title>
+	<title>家·谱——空合照清理</title>
     <meta name="keywords" content="">
 	<meta name="description" content="">
 	<meta charset="utf-8">
@@ -66,13 +66,9 @@
 
 		<div class="row">
 			<div class="col-md-offset-2 col-md-8 col-sm-12">
-				<h2><i class="fa fa-th-list"></i>合照列表<br>
+				<h2><i class="fa fa-th-list"></i>空合照清理<br>
 					<small>
-						<a href="pic_clean"><i class="fa fa-th-list"></i>空合照清理</a><br>
-						<a href="namelist"><i class="fa fa-th-list"></i>人员列表</a><br>
-						<strong>{{people_num}}</strong>位人物&nbsp;
-						<strong>{{face_num}}</strong>个人脸&nbsp;
-						<strong>{{pic_num}}</strong>张合照
+						<a href="piclist"><i class="fa fa-th-list"></i>合照列表</a><br>
 					</small>
 				</h2>
 			</div>
@@ -98,14 +94,32 @@
 			</li>
 		  </ul>
 		</nav>
-		<div class="text-center">
-			<form name="search_form" method="POST" action="piclist" enctype="multipart/form-data" role="form">
-				{% csrf_token %}
-				<input class="" type="text" name="search" placeholder="仅支持有标题的图片">
-				<input class="" type="submit" value="搜索">
-			</form>
-		</div>
 		<div class="row mt30">
+			<script type="text/javascript">
+				function sendGetRequestAndRefresh(url) {
+					const isConfirmed = window.confirm("你确定要删除吗？");
+					if (isConfirmed){
+						fetch(url, {
+							method: 'GET', // 指定请求类型为GET
+						})
+						.then(response => {
+							if (response.ok) {
+								// 请求成功后刷新页面
+								location.reload();
+							} else {
+								console.error('请求失败:', response.statusText);
+							}
+						})
+						.catch(error => {
+							console.error('请求过程中出现错误:', error);
+						});
+					} else {
+						console.log('删除操作已取消');
+						alert('删除操作已取消');
+					}
+					
+				}
+			</script>
 				{% for name, path, number, count, relate in piclist %}
 					<div class="col-md-6" style="height:100%">
 						<div class="team-wrapper">
@@ -113,6 +127,7 @@
 							<h3 style="display:block;word-break:keep-all;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{name}}</h3>
 							<h5>共{{number|default:"-"}}人,录入{{relate|default:"-"}}人</h5>
 							<h4><a href="pic_info/{{path}}">详情>></a></h4>
+							<h4 class="btn" onclick="sendGetRequestAndRefresh('pic_del/{{path}}')">删除</h4>
 						</div>
 					</div>
 				{% if  count == 0 %}

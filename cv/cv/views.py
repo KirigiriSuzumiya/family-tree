@@ -252,7 +252,6 @@ def index(request):
     return render(request, 'index.html', context)
 
 
-list_pic = []
 def piclist(request):
     if request.method == "POST":
         names = image_db.objects.filter(title__icontains=request.POST["search"]).only("id")
@@ -297,6 +296,53 @@ def piclist(request):
     context['current_num'] = current_num
     context['end_page'] = paginator.num_pages
     return render(request, 'piclist.html', context)
+
+
+def pic_clean(request):
+    names = image_db.objects.filter(faceimage__isnull=True).only("id")
+    paginator = Paginator(names, 10)
+    current_num = int(request.GET.get("page", 1))
+    name_in_page = paginator.page(current_num)
+    # name_in_page = image_db.objects.filter(id__in=[j.id for j in name_in_page])
+    context = always()
+    filter_list = []
+    count = 1
+    for i, img_id in enumerate(name_in_page):
+            img_obj = image_db.objects.get(id=img_id.id)
+            name = img_obj.path
+            if img_obj.title:
+                name = img_obj.title
+            path =img_obj.path
+            number = img_obj.count
+            relate = len(FaceImage.objects.filter(image=img_obj))
+            filter_list.append([name, path, number, count, relate])
+            count = (count + 1) % 2
+    context['piclist'] = filter_list
+    # 大于11页时
+    if paginator.num_pages > 11:
+        # 当前页码的后5页数超过最大页码时，显示最后10项
+        if current_num + 5 > paginator.num_pages:
+            page_range = range(paginator.num_pages - 10, paginator.num_pages + 1)
+        # 当前页码的前5页数为负数时，显示开始的10项
+        elif current_num - 5 < 1:
+            page_range = range(1, 12)
+        else:
+            # 显示左5页到右5页的页码
+            page_range = range(current_num - 5, current_num + 5 + 1)
+    # 小于11页时显示所有页码
+    else:
+        page_range = paginator.page_range
+    context['page_range'] = page_range
+    context['current_num'] = current_num
+    context['end_page'] = paginator.num_pages
+    return render(request, 'pic_clean.html', context)
+
+
+def pic_del(request, path):
+    image_obj = image_db.objects.get(path=path)
+    image_obj.delete()
+    messages.error(request, path + "已删除")
+    return HttpResponse("")
 
 
 def namelist(request):
@@ -671,27 +717,8 @@ def face_edit_check(request, id):
 
 
 def edit_pic(request, path):
-    # client_id 为官网获取的AK， client_secret 为官网获取的SK
-    # 获取access_token
-    host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s' % (api_key, secret_key)
-    response = requests.get(host)
-    if response:
-        access_token = response.json()["access_token"]
-    else:
-        return 0
-
-    # 设置请求包体
-    request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/face/delete"
-    request_url = request_url + "?access_token=" + access_token
-    headers = {'content-type': 'application/json'}
-    path = os.path.basename(path)
     img_obj = FaceImage.objects.filter(path=path)[0]
-    params = '{"log_id":%s,"group_id":"admin","user_id":"%d","face_token":"%s"}' % (img_obj.logid, img_obj.name.id, img_obj.token)
-    response = requests.post(request_url, data=params, headers=headers)
-    print(response.json())
-    img_path = os.path.join(BASE_DIR, 'cv', 'model_image')
     img_obj.delete()
-    os.remove(os.path.join(img_path, path))
     messages.error(request, path + "已删除")
     return HttpResponseRedirect("/namelist")
 

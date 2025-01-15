@@ -255,6 +255,42 @@
 				  </tbody>
 				</table>
 				<a class="btn center-block" href="/recog_again/{{path}}" onclick="openDialog();">合照重识与补录功能——{% if use_baidu == 1 %}百度API识别{% endif %}{% if use_baidu == 0 %}自有库识别{% endif %}</a>
+				<script>
+					function confirmAndDelete() {
+						// 弹出确认对话框
+						const isConfirmed = window.confirm("你确定要删除吗？");
+
+						// 如果用户点击了确认
+						if (isConfirmed) {
+							fetch("/pic_del/{{path}}", {
+								method: 'GET',
+								headers: {
+									'Content-Type': 'application/json'
+								}
+							})
+							.then(response => {
+								// 检查请求是否成功
+								if (!response.ok) {
+									throw new Error('网络响应失败');
+								}
+							})
+							.then(data => {
+								console.log('删除成功:', data);
+								// 在这里你可以添加更多的逻辑，比如更新UI等
+								alert('删除成功！');
+								window.location.href = '/piclist';
+							})
+							.catch(error => {
+								console.error('删除过程中发生错误:', error);
+								alert('删除失败，请重试。');
+							});
+						} else {
+							console.log('删除操作已取消');
+							alert('删除操作已取消');
+						}
+					}
+					</script>
+				<div class="btn center-block mt30" onclick="confirmAndDelete()">删除相片</div>
 			</div>
 		</div>
 	</div>
