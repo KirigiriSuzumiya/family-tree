@@ -438,7 +438,8 @@
 													img_y: 5,
 												},
 												card_display: [
-													(d) => `${d.data["first name"] || ""} ${d.data["last name"] || ""}`,
+													(d) => `${d.data["name"] || ""}`,
+													(d) => `${d.data["first_name"] || ""} ${d.data["middle_name"] || ""} ${d.data["last_name"] || ""}`,
 													(d) => `${d.data["birthday"] || ""}`,
 												],
 												mini_tree: true,

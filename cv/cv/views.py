@@ -956,8 +956,10 @@ def familytree_info(id):
             "id": str(peo_now.id),
             "data":{
                 "gender": sex,
-                "first name": peo_now.name,
-                "last name":f"({full_name})" if full_name else "",
+                "name": peo_now.name,
+                "first_name": peo_now.first_name,
+                "middle_name": peo_now.middle_name,
+                "last_name": peo_now.last_name,
                 "birthday": f"{str(peo_now.birth_date)[:-9]}-{str(peo_now.death_date)[:-9]}",
                 "avatar": avatar_path
             },
