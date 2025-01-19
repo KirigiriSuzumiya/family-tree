@@ -563,28 +563,34 @@ def face_edit(request, re_name):
     key: str
     location_set = set()
     for key in list(request.POST.keys()):
-        if key.startswith("loc_"):
-            loc_id = key.split("_")[-1]
-            if loc_id == "new":
-                if "new" not in location_set and request.POST["loc_x_new"]:
-                    loc_obj = Location(
-                        belongs_to=people_obj,
-                        loc_x=request.POST["loc_x_new"],
-                        loc_y=request.POST["loc_y_new"],
-                        date=request.POST["loc_date_new"] if request.POST["loc_date_new"] else None,
-                        description=request.POST["loc_info_new"]
-                    )
-                    location_set.add("new ")
-                    loc_obj.save()
-            else:
-                if loc_id not in location_set:
-                    loc_obj = Location.objects.get(id=int(loc_id))
-                    loc_obj.loc_x=request.POST["loc_x_"+loc_id]
-                    loc_obj.loc_y=request.POST["loc_y_"+loc_id]
-                    loc_obj.date=request.POST["loc_date_"+loc_id] if request.POST["loc_date_"+loc_id] else None
-                    loc_obj.description=request.POST["loc_info_"+loc_id]
-                    location_set.add(loc_id)
-                    loc_obj.save()
+        if not key.startswith("loc_"):
+            continue
+        loc_id = key.split("_")[-1]
+        if loc_id in location_set:
+            continue
+        else:
+            location_set.add(loc_id)
+        if loc_id == "new":
+            if not request.POST["loc_x_new"]:
+                continue
+            loc_obj = Location(
+                belongs_to=people_obj,
+                loc_x=request.POST["loc_x_new"],
+                loc_y=request.POST["loc_y_new"],
+                date=request.POST["loc_date_new"] if request.POST["loc_date_new"] else None,
+                description=request.POST["loc_info_new"]
+            )
+        else:
+            loc_obj = Location.objects.get(id=int(loc_id))
+            if not request.POST["loc_x_"+loc_id]:
+                loc_obj.delete()
+                continue
+            loc_obj.loc_x=request.POST["loc_x_"+loc_id]
+            loc_obj.loc_y=request.POST["loc_y_"+loc_id]
+            loc_obj.date=request.POST["loc_date_"+loc_id] if request.POST["loc_date_"+loc_id] else None
+            loc_obj.description=request.POST["loc_info_"+loc_id]
+
+        loc_obj.save()
 
     return HttpResponseRedirect("/facelist/%s" % people_obj.id)
 
@@ -717,6 +723,7 @@ def face_edit_check(request, id):
 
 
 def edit_pic(request, path):
+    path = os.path.basename(path)
     img_obj = FaceImage.objects.filter(path=path)[0]
     img_obj.delete()
     messages.error(request, path + "已删除")
