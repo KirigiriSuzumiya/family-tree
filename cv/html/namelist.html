@@ -110,15 +110,17 @@
 			</form>
 		</div>
 		<div>
-			{% if search %}
-				对
-				{% if target == 'edu' %} 教育经历 {% endif %}
-				{% if target == 'name' %} 姓名 {% endif %}
-				{% if target == 'institute' %} 所属机构 {% endif %}
-				为
-				{{ search }}
-				的搜索结果：
-			{% endif %}
+			<h5>
+				{% if search %}
+					对
+					{% if target == 'edu' %} 教育经历 {% endif %}
+					{% if target == 'name' %} 姓名 {% endif %}
+					{% if target == 'institute' %} 所属机构 {% endif %}
+					为
+					{{ search }}
+					的搜索结果，共{{ count }}条记录：
+				{% endif %}
+			</h5>
 		</div>
 		<div class="row mt30">
 				{% for name,upload_time,path,traceback,count,en_name,id in namelist %}

@@ -413,6 +413,7 @@ def namelist(request):
     context['end_page'] = paginator.num_pages
     context['search'] = search
     context['target'] = target
+    context['count'] = paginator.count
     return render(request, 'namelist.html', context)
 
 
