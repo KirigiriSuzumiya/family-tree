@@ -76,33 +76,49 @@
 				</h2>
 			</div>
 		</div>
-				<nav aria-label="Page navigation" class="text-center">
+		<nav aria-label="Page navigation" class="text-center">
 		  <ul class="pagination">
 			<li>
-			  <a href="?page=1" aria-label="Previous">
+			  <a href="?target={{ target }}&search={{ search }}&page=1" aria-label="Previous">
 				<span aria-hidden="true">首页</span>
 			  </a>
 			</li>
 			  {% for num in page_range %}
 			  {% if num == current_num %}
-				  <li class="active"><a href="?page={{ num }}">{{ num }}</a></li>
+				  <li class="active"><a href="?target={{ target }}&search={{ search }}&page={{ num }}">{{ num }}</a></li>
 			  {% else %}
-				  <li><a href="?page={{ num }}">{{ num }}</a></li>
+				  <li><a href="?target={{ target }}&search={{ search }}&page={{ num }}">{{ num }}</a></li>
 			  {% endif %}
 			  {% endfor %}
 			<li>
-			  <a href="?page={{ end_page }}" rel="external nofollow"  aria-label="Next">
+			  <a href="?target={{ target }}&search={{ search }}&page={{ end_page }}" rel="external nofollow"  aria-label="Next">
 				<span aria-hidden="true">尾页</span>
 			  </a>
 			</li>
 		  </ul>
 		</nav>
 		<div class="text-center">
-			<form name="search_form" method="POST" action="namelist" enctype="multipart/form-data" role="form">
-				{% csrf_token %}
-				<input class="" type="text" name="search" placeholder="搜索人员">
+			<form name="search_form" method="GET" action="namelist" enctype="multipart/form-data" role="form">
+				<!-- {% csrf_token %} -->
+				<select name="target" value="{{ target }}">
+					<option value="name" {% if target == 'name' %} selected {% endif %} >姓名</option>
+					<option value="institute" {% if target == 'institute' %} selected {% endif %} >所属机构</option>
+					<option value="edu" {% if target == 'edu' %} selected {% endif %} >教育经历</option>
+				</select>
+				<input class="" type="text" name="search" placeholder="搜索人员" value="{{ search }}">
 				<input class="" type="submit" value="搜索">
 			</form>
+		</div>
+		<div>
+			{% if search %}
+				对
+				{% if target == 'edu' %} 教育经历 {% endif %}
+				{% if target == 'name' %} 姓名 {% endif %}
+				{% if target == 'institute' %} 所属机构 {% endif %}
+				为
+				{{ search }}
+				的搜索结果：
+			{% endif %}
 		</div>
 		<div class="row mt30">
 				{% for name,upload_time,path,traceback,count,en_name,id in namelist %}
@@ -125,19 +141,19 @@
 <nav aria-label="Page navigation" class="text-center">
 		  <ul class="pagination">
 			<li>
-			  <a href="?page=1" aria-label="Previous">
+			  <a href="?target={{ target }}&search={{ search }}&page=1" aria-label="Previous">
 				<span aria-hidden="true">首页</span>
 			  </a>
 			</li>
 			  {% for num in page_range %}
 			  {% if num == current_num %}
-				  <li class="active"><a href="?page={{ num }}">{{ num }}</a></li>
+				  <li class="active"><a href="?target={{ target }}&search={{ search }}&page={{ num }}">{{ num }}</a></li>
 			  {% else %}
-				  <li><a href="?page={{ num }}">{{ num }}</a></li>
+				  <li><a href="?target={{ target }}&search={{ search }}&page={{ num }}">{{ num }}</a></li>
 			  {% endif %}
 			  {% endfor %}
 			<li>
-			  <a href="?page={{ end_page }}" rel="external nofollow"  aria-label="Next">
+			  <a href="?target={{ target }}&search={{ search }}&page={{ end_page }}" rel="external nofollow"  aria-label="Next">
 				<span aria-hidden="true">尾页</span>
 			  </a>
 			</li>

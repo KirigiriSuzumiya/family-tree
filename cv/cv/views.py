@@ -348,13 +348,24 @@ def pic_del(request, path):
 def namelist(request):
     context = always()
     namelist = []
-    if request.method == "POST":
-        names = People.objects.filter(Q(name__icontains=request.POST["search"])|
-                                      Q(first_name__icontains=request.POST["search"]) |
-                                      Q(middle_name__icontains=request.POST["search"]) |
-                                      Q(last_name__icontains=request.POST["search"]))\
-                                        .distinct().order_by('name').only("id")
-        paginator = Paginator(names, len(names))
+    search = ""
+    target = ""
+    if request.GET.get("search"):
+        search = request.GET["search"]
+        target = request.GET["target"]
+        if target == "name":
+            names = People.objects.filter(Q(name__icontains=search)|
+                                        Q(first_name__icontains=search) |
+                                        Q(middle_name__icontains=search) |
+                                        Q(last_name__icontains=search))\
+                                            .distinct().order_by('name').only("id")
+        elif target == "institute":
+            names = People.objects.filter(Q(institute__icontains=search))\
+                                            .distinct().order_by('name').only("id")
+        elif target == "edu":
+            names = People.objects.filter(Q(edu__icontains=search))\
+                                            .distinct().order_by('name').only("id")
+        paginator = Paginator(names, 24)
     else:
         names = People.objects.all().order_by('name').only("id")
         paginator = Paginator(names, 24)
@@ -400,6 +411,8 @@ def namelist(request):
     context['page_range'] = page_range
     context['current_num'] = current_num
     context['end_page'] = paginator.num_pages
+    context['search'] = search
+    context['target'] = target
     return render(request, 'namelist.html', context)
 
 

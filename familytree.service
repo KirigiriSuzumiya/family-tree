@@ -1,0 +1,15 @@
+[Unit]
+Description=Family Tree server
+After=network.target
+
+[Service]
+WorkingDirectory=/home/family-tree/cv
+ExecStart=python -u manage.py runserver 0.0.0.0:80
+Restart=always
+User=root
+StandardOutput=append:/home/family-tree/logs/service_std.log
+StandardError=append:/home/family-tree/logs/service_error.log
+
+[Install]
+WantedBy=multi-user.target
+    
